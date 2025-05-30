@@ -106,7 +106,7 @@ Puedes ejecutar los proyectos desde Visual Studio o usando el .NET CLI.
 ## Documentación Adicional
 
 Para un análisis más profundo de la arquitectura, patrones de diseño y flujos de datos del proyecto, consulta el documento:
-* [Análisis_Detallado_del_Proyecto_Ticket_Manager.md](Análisis_Detallado_del_Proyecto_TicketManager.md)
+* [Análisis_Detallado_del_Proyecto.md](Análisis_Detallado_del_Proyecto.md)
 
 ## Contribución
 
