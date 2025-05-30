@@ -1,0 +1,6 @@
+@ADR_T.NotificationService_HostAddress = http://localhost:5070
+
+GET {{ADR_T.NotificationService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
