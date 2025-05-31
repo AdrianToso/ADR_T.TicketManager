@@ -27,16 +27,25 @@ Actualmente, la solución soporta dos interfaces de usuario desacopladas: una AP
 
 ### 1. Visión General del Proyecto
 
-(Breve descripción del propósito del sistema de gestión de tickets.)
+El sistema `ADR_T.TicketManager` es una aplicación de gestión de tickets diseñada para demostrar y aplicar activamente principios de **Clean Architecture y el patrón CQRS (Command Query Responsibility Segregation)** dentro de un entorno de microservicios. Su propósito principal es gestionar el ciclo de vida de los tickets (creación, asignación, actualización de estado, etc.) y sus notificaciones asociadas.
+
+Más allá de su funcionalidad básica, este proyecto sirve como un **laboratorio práctico para el desarrollo de habilidades** en tecnologías clave del ecosistema .NET y DevOps, incluyendo:
+
+* **ASP.NET Core 9**: Desarrollo de APIs robustas y microservicios.
+* **Inyección de Dependencias**: Gestión eficiente y desacoplada de los componentes de la aplicación.
+* **Entity Framework Core**: Gestión de la persistencia de datos.
+* **MassTransit y RabbitMQ**: Implementación de comunicación asíncrona y procesamiento de eventos.
+* **Docker y Docker Compose**: Orquestación de entornos de desarrollo y producción consistentes.
+* **Prácticas de Clean Architecture y CQRS**: Diseño de software desacoplado, escalable y mantenible.
 
 ### 2. Microservicios y Tecnologías Clave
 
 Este proyecto se compone de varios microservicios y utiliza las siguientes tecnologías:
 
 * **ADR_T.TicketManager.WebAPI**: API principal para la gestión de tickets.
-    * Tecnologías: ASP.NET Core (.NET 9.0), MediatR (CQRS), Entity Framework Core, JWT Authentication, Serilog.
+    * Tecnologías: ASP.NET Core (.NET 9.0), MediatR (CQRS), Entity Framework Core, JWT Authentication, Serilog, **Inyección de Dependencias**.
 * **ADR_T.NotificationService.API**: Microservicio encargado del envío de notificaciones.
-    * Tecnologías: ASP.NET Core (.NET 9.0), Entity Framework Core, Serilog, MassTransit (para comunicación con RabbitMQ).
+    * Tecnologías: ASP.NET Core (.NET 9.0), Entity Framework Core, Serilog, MassTransit (para comunicación con RabbitMQ), **Inyección de Dependencias**.
 * **SQL Server**: Base de datos relacional para la persistencia de datos de ambos servicios.
 * **RabbitMQ**: Broker de mensajes utilizado por MassTransit para la comunicación asíncrona entre servicios (ej. publicación/consumo de eventos).
 * **Apache Kafka / Confluent Kafka**: Plataforma de streaming de eventos (si bien no está directamente integrada con los servicios .NET aún, se incluye en el entorno Docker para futura expansión).
@@ -52,8 +61,8 @@ La solución está organizada en múltiples proyectos, cada uno representando un
 
 * **`ADR_T.TicketManager.Core`**: (Dominio) Contiene las entidades del dominio, interfaces de repositorios, excepciones, constantes y eventos de dominio. Es el corazón de la lógica de negocio.
 * **`ADR_T.TicketManager.Application`**: (Aplicación) Define la lógica de negocio específica de la aplicación. Incluye DTOs, comandos (Commands), consultas (Queries) y sus respectivos manejadores (Handlers) que implementan el patrón CQRS (utilizando MediatR). También define contratos para servicios de aplicación.
-* **`ADR_T.TicketManager.Infrastructure`**: (Infraestructura) Contiene las implementaciones concretas de las interfaces definidas en `Core` y `Application`. Esto incluye la configuración de la persistencia (Entity Framework Core para `AppDbContext`), repositorios, servicios de identidad (ASP.NET Core Identity) y la implementación del bus de eventos (RabbitMQ).
-* **`ADR_T.TicketManager.WebAPI`**: (Presentación - API) Es el proyecto de la API RESTful que expone los endpoints. Actúa como un adaptador que consume los comandos y consultas de la capa `Application`.
+* **`ADR_T.TicketManager.Infrastructure`**: (Infraestructura) Contiene las implementaciones concretas de las interfaces definidas en `Core` y `Application`. Esto incluye la configuración de la persistencia (Entity Framework Core para `AppDbContext`), repositorios, servicios de identidad (ASP.NET Core Identity) y la implementación del bus de eventos (RabbitMQ). Aquí se configuran las dependencias para su inyección.
+* **`ADR_T.TicketManager.WebAPI`**: (Presentación - API) Es el proyecto de la API RESTful que expone los endpoints. Actúa como un adaptador que consume los comandos y consultas de la capa `Application`. Es el punto de entrada principal donde se registran y resuelven las dependencias.
 * **`ADR_T.TicketManager.Web` (Próximamente/En Desarrollo)**: (Presentación - MVC/Razor) Un nuevo proyecto ASP.NET Core MVC que contendrá las vistas Razor y controladores para una interfaz de usuario tradicional basada en servidor. Consumirá también la capa `Application`.
 * **`ADR_T.TicketManager.Tests`**: Contiene los proyectos de pruebas unitarias para las diferentes capas de la solución, asegurando la calidad y el comportamiento esperado del código.
 
@@ -61,8 +70,8 @@ La solución está organizada en múltiples proyectos, cada uno representando un
 
 * **`ADR_T.NotificationService.Domain`**: Contiene la entidad de dominio `NotificationLog` y otros elementos específicos del microservicio de notificaciones.
 * **`ADR_T.NotificationService.Application`**: Define los consumidores de eventos (MassTransit) para procesar eventos de dominio de otros servicios (ej. `TicketCreadoEvent`, `TicketActualizadoEvent`).
-* **`ADR_T.NotificationService.Infrastructure`**: Implementa la persistencia para los logs de notificaciones (Entity Framework Core para `NotificationDbContext`) y la configuración de MassTransit para el microservicio de notificaciones.
-* **`ADR_T.NotificationService.API`**: Es la aplicación principal (Host) que ejecuta el microservicio de notificaciones, configurando los consumidores y la infraestructura necesaria.
+* **`ADR_T.NotificationService.Infrastructure`**: Implementa la persistencia para los logs de notificaciones (Entity Framework Core para `NotificationDbContext`) y la configuración de MassTransit para el microservicio de notificaciones. Aquí también se configuran las dependencias del servicio.
+* **`ADR_T.NotificationService.API`**: Es la aplicación principal (Host) que ejecuta el microservicio de notificaciones, configurando los consumidores y la infraestructura necesaria, incluyendo el registro de dependencias.
 
 ### 4. Requisitos Previos
 
@@ -83,15 +92,14 @@ Este es el método **recomendado** para ejecutar el proyecto en tu entorno de de
 #### 5.1. Configuración de Variables de Entorno
 
 Crea un archivo llamado `.env` en la **raíz del proyecto** (al mismo nivel que `docker-compose.yml`) y añade las siguientes variables. Estas serán utilizadas por Docker Compose para configurar los servicios:
-
-**Nota de seguridad**: El archivo `.env` contiene credenciales sensibles y **NO DEBE SER SUBIDO A REPOSITORIOS PÚBLICOS**. Asegúrate de que tu `.gitignore` incluye la línea `.env`.
-
-# Variables para SQL Server
+Variables para SQL Server
 SQL_SA_PASSWORD=YourStrongPassword!123 # ¡IMPORTANTE! Cambia esto a una contraseña segura y recuérdala.
 
-# Variables para RabbitMQ
+Variables para RabbitMQ
 RABBITMQ_DEFAULT_USER=user
 RABBITMQ_DEFAULT_PASS=password
+
+**Nota de seguridad**: El archivo `.env` contiene credenciales sensibles y **NO DEBE SER SUBIDO A REPOSITORIOS PÚBLICOS**. Asegúrate de que tu `.gitignore` incluye la línea `.env`.
 
 #### 5.2. Levantando los Servicios con Docker Compose
 
