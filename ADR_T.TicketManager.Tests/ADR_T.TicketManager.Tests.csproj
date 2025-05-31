@@ -23,10 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ADR_T.NotificationService.API\ADR_T.NotificationService.API.csproj" />
     <ProjectReference Include="..\ADR_T.NotificationService.Application\ADR_T.NotificationService.Application.csproj" />
     <ProjectReference Include="..\ADR_T.NotificationService.Domain\ADR_T.NotificationService.Domain.csproj" />
     <ProjectReference Include="..\ADR_T.NotificationService.Infrastructure\ADR_T.NotificationService.Infrastructure.csproj" />
-    <ProjectReference Include="..\ADR_T.NotificationService\ADR_T.NotificationService.API.csproj" />
     <ProjectReference Include="..\ADR_T.TicketManager.Application\ADR_T.TicketManager.Application.csproj" />
     <ProjectReference Include="..\ADR_T.TicketManager.Core\ADR_T.TicketManager.Core.csproj" />
     <ProjectReference Include="..\ADR_T.TicketManager.Infrastructure\ADR_T.TicketManager.Infrastructure.csproj" />

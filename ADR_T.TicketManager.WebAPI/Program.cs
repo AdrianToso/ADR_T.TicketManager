@@ -147,7 +147,7 @@ using (var scope = app.Services.CreateScope())
 //  Middleware pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAngular");
 app.UseAuthentication();

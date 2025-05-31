@@ -1,0 +1,116 @@
+services:
+  # Servicio de Base de Datos SQL Server
+  sqlserver:
+    build: ./sqlserver_image
+    container_name: adr_t_sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "${SQL_SA_PASSWORD}"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "${SQL_SA_PASSWORD}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Servicio de RabbitMQ (Broker de mensajes)
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: adr_t_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
+
+  # Servicio de Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: adr_t_zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  # Servicio de Kafka (Broker de mensajes para eventos de alto volumen)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: adr_t_kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  # Kafka UI - Interfaz gráfica para Kafka
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: adr_t_kafka_ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: 'Mi Cluster Local'
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:29092'
+      KAFKA_CLUSTERS_0_ZOOKEEPER: 'zookeeper:2181'
+    depends_on:
+      - kafka
+
+  # Servicio de la API del Ticket Manager
+  webapi:
+    build:
+      context: .
+      dockerfile: ADR_T.TicketManager.WebAPI/Dockerfile
+    container_name: adr_t_webapi
+    ports:
+      - "7000:80" # Mapea el puerto HTTP del contenedor al puerto 7000 del host.
+      # - "7001:443" # <<-- ESTA LÍNEA DEBE ESTAR COMENTADA O ELIMINADA.
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=ADR_T_TicketManagerDb;User Id=SA;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      ASPNETCORE_URLS: "http://+:80" # <<-- MODIFICA ESTA LÍNEA PARA SOLO HTTP.
+      ASPNETCORE_ENVIRONMENT: Development
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "${RABBITMQ_DEFAULT_USER}"
+      RabbitMQ__Password: "${RABBITMQ_DEFAULT_PASS}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+
+  # Servicio del Microservicio de Notificaciones
+  notificationservice:
+    build:
+      context: .
+      dockerfile: ADR_T.NotificationService.API/Dockerfile
+    container_name: adr_t_notificationservice
+    ports:
+      - "7002:80"
+    environment:
+      ConnectionStrings__NotificationConnection: "Server=sqlserver;Database=ADR_T_NotificationDb;User Id=SA;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      ASPNETCORE_URLS: "http://+:80"
+      ASPNETCORE_ENVIRONMENT: Development
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__VirtualHost: "/"
+      RabbitMQ__Username: "${RABBITMQ_DEFAULT_USER}"
+      RabbitMQ__Password: "${RABBITMQ_DEFAULT_PASS}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+
+volumes:
+  sqlserver_data:

@@ -41,7 +41,7 @@ try
         logger.LogInformation("Swagger habilitado en modo Desarrollo.");
     }
 
-    app.UseHttpsRedirection();
+ //   app.UseHttpsRedirection();
 
     app.MapGet("/", () => $"ADR_T Notification Service ({app.Environment.EnvironmentName}) Anda!");
 
