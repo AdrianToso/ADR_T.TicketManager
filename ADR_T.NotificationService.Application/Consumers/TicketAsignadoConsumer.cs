@@ -10,17 +10,22 @@ public class TicketAsignadoConsumer : IConsumer<TicketAsignadoEvent>
 {
     private readonly ILogger<TicketAsignadoConsumer> _logger;
     private readonly INotificationUnitOfWork _notificationContext;
+
     public TicketAsignadoConsumer(ILogger<TicketAsignadoConsumer> logger,
-                                  INotificationUnitOfWork notificationContext)
+                                     INotificationUnitOfWork notificationContext)
     {
         _logger = logger;
         _notificationContext = notificationContext;
     }
+
     public async Task Consume(ConsumeContext<TicketAsignadoEvent> context)
     {
         var evento = context.Message;
-        string logMessage = $"Ticket Asignado: ID={evento.TicketId} - Titulo: {evento.Titulo} , TecnicoID={evento.AsignadorUserId}, Email= {evento.AsignadoUserMail ?? "N/A"}.";
-        _logger.LogWarning(logMessage);
+        // --- CORRECCIÓN CLAVE AQUÍ: Usar evento.AsignadoUserId para TecnicoID ---
+        string logMessage = $"Ticket Asignado: ID={evento.TicketId} - Titulo: {evento.Titulo} , TecnicoID={evento.AsignadoUserId}, Email= {evento.AsignadoUserMail ?? "N/A"}.";
+        // ---------------------------------------------------------------------
+        _logger.LogWarning(logMessage); // Nivel de log es Warning aquí
+
         var notification = new NotificationLog
         {
             EventType = nameof(TicketAsignadoEvent),
@@ -33,4 +38,3 @@ public class TicketAsignadoConsumer : IConsumer<TicketAsignadoEvent>
         _logger.LogInformation($"NotificationLog guardado: {notification.Id} - {notification.Message}");
     }
 }
-

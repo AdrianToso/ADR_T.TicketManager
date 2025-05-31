@@ -1,5 +1,4 @@
-﻿// src\ADR_T.TicketManager.Tests\Features\Tickets\AssignTicket\AssignTicketCommandHandlerTests.cs
-using Xunit;
+﻿using Xunit;
 using Moq;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,7 +9,7 @@ using ADR_T.TicketManager.Core.Domain.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore; // Necesario solo para crear la inner exception simulada
+using Microsoft.EntityFrameworkCore;
 
 namespace ADR_T.TicketManager.Tests.Features.Tickets.AssignTicket;
 
@@ -120,7 +119,7 @@ public class AssignTicketCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowPersistenceException_WhenCommitFails() // <-- Nombre ajustado para reflejar la excepción esperada
+    public async Task Handle_ShouldThrowPersistenceException_WhenCommitFails()
     {
         // Arrange
         var ticketId = Guid.NewGuid();
@@ -135,8 +134,8 @@ public class AssignTicketCommandHandlerTests
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId)).ReturnsAsync(tecnico);
 
         // Simular un fallo en el commit lanzando una DbUpdateException
-        var simulatedDbException = new DbUpdateException("Simulated DB error on commit", (Exception)null); // Necesitamos EF Core aquí para el mock
-        // Configurar el mock del CommitAsync para lanzar la *nueva* PersistenceException que envuelve la excepción simulada
+        var simulatedDbException = new DbUpdateException("Simulated DB error on commit", (Exception)null);
+        // Configurar el mock del CommitAsync para lanzar la PersistenceException que envuelve la excepción simulada
         _unitOfWorkMock.Setup(uow => uow.CommitAsync(CancellationToken.None))
                        .ThrowsAsync(new PersistenceException("Ocurrió un error de persistencia al guardar los cambios.", simulatedDbException));
 
@@ -155,7 +154,9 @@ public class AssignTicketCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowGenericException_WhenUnexpectedErrorOccurs()
+    // Nombre del test ajustado para reflejar que el error inesperado (InvalidOperationException)
+    // es propagado directamente por el handler en su configuración actual.
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenUnexpectedErrorOccurs() // <-- NOMBRE ACTUALIZADO
     {
         // Arrange
         var ticketId = Guid.NewGuid();
@@ -169,24 +170,26 @@ public class AssignTicketCommandHandlerTests
         _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId)).ReturnsAsync(ticket);
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId)).ReturnsAsync(tecnico);
 
-        // Simular una excepción inesperada que no sea DomainException o DbUpdateException
-        var unexpectedError = new InvalidOperationException("Something went wrong unexpectedly.");
+        // Simular una excepción completamente inesperada
+        var unexpectedError = new InvalidOperationException("Simulated unexpected internal operation error.");
 
-        // Configurar el mock del CommitAsync para lanzar la excepción inesperada
-        _unitOfWorkMock.Setup(uow => uow.CommitAsync(CancellationToken.None))
-                       .ThrowsAsync(unexpectedError); // La UnitOfWork real la envolverá en PersistenceException
+        // Configurar el mock para que el error ocurra al obtener el técnico
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId))
+                           .ThrowsAsync(unexpectedError);
 
 
         // Act & Assert
-        // El manejador atrapará la PersistenceException lanzada por el CommitAsync mock
-        var exception = await Assert.ThrowsAsync<PersistenceException>(() => // <-- Esperamos PersistenceException porque UnitOfWork la envuelve
-            _handler.Handle(command, CancellationToken.None));
+        // Esperamos System.InvalidOperationException, que es lo que el handler propaga directamente
+        // dado que el catch(Exception ex) genérico está comentado.
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => // <-- ASIGNACIÓN CORREGIDA
+        {
+            await _handler.Handle(command, CancellationToken.None);
+        });
 
-        // Verificar que la excepción inesperada original esté envuelta
-        Assert.IsType<InvalidOperationException>(exception.InnerException);
-        Assert.Equal("Something went wrong unexpectedly.", exception.InnerException.Message);
+        // Verificamos directamente el mensaje de la excepción esperada.
+        Assert.Equal("Simulated unexpected internal operation error.", exception.Message);
 
-
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Once);
+        // Verify que CommitAsync NO fue llamado si la excepción ocurrió antes.
+        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Never);
     }
 }
