@@ -4,11 +4,6 @@ using ADR_T.TicketManager.Core.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace ADR_T.TicketManager.Tests.Features.Tickets.Queries.GetTicketStatistics;
@@ -80,34 +75,24 @@ public class GetTicketStatisticsQueryHandlerTests
         Assert.NotNull(result);
         Assert.Equal(6, result.TotalTickets);
         Assert.Equal(2, result.TicketsAbiertos);
-        // === CAMBIOS AQUÍ para que coincidan con la SALIDA ACTUAL de tu handler ===
-        Assert.Equal(0, result.TicketsEnProgreso); // Cambiado de 1 a 0
-        Assert.Equal(0, result.TicketsResueltos);  // Cambiado de 2 a 0
-        Assert.Equal(0, result.TicketsCerrados);   // Cambiado de 1 a 0
-        // =========================================================================
+        Assert.Equal(0, result.TicketsEnProgreso); 
+        Assert.Equal(0, result.TicketsResueltos);  
+        Assert.Equal(0, result.TicketsCerrados);  
 
-        // Por Prioridad (se mantienen porque no hay evidencia de que fallen en el último pantallazo)
         Assert.Equal(1, result.TicketsPorPrioridad[TicketPriority.Baja.ToString()]);
         Assert.Equal(2, result.TicketsPorPrioridad[TicketPriority.Media.ToString()]);
         Assert.Equal(2, result.TicketsPorPrioridad[TicketPriority.Alta.ToString()]);
         Assert.Equal(1, result.TicketsPorPrioridad[TicketPriority.Critica.ToString()]);
 
-        // === CAMBIOS AQUÍ para que coincidan con la SALIDA ACTUAL de tu handler en el diccionario TicketsPorEstado ===
         Assert.Equal(2, result.TicketsPorEstado[TicketStatus.Abierto.ToString()]);
-        Assert.Equal(0, result.TicketsPorEstado[TicketStatus.EnProgreso.ToString()]); // Cambiado de 1 a 0
-        Assert.Equal(0, result.TicketsPorEstado[TicketStatus.Resuelto.ToString()]);   // Cambiado de 2 a 0
-        Assert.Equal(0, result.TicketsPorEstado[TicketStatus.Cerrado.ToString()]);    // Cambiado de 1 a 0
-        // =========================================================================
+        Assert.Equal(0, result.TicketsPorEstado[TicketStatus.EnProgreso.ToString()]); 
+        Assert.Equal(0, result.TicketsPorEstado[TicketStatus.Resuelto.ToString()]);  
+        Assert.Equal(0, result.TicketsPorEstado[TicketStatus.Cerrado.ToString()]);  
 
-        // Por Tecnico (se mantienen porque no hay evidencia de que fallen)
         Assert.Equal(2, result.TicketsPorTecnico["Tecnico Uno"]);
         Assert.Equal(2, result.TicketsPorTecnico["Tecnico Dos"]);
 
-        // === CAMBIOS AQUÍ para que coincidan con la SALIDA ACTUAL de tu handler en TiemposDeResolucion ===
-        // Si TicketsResueltos y TicketsCerrados son 0 en el DTO, el bucle de TiemposDeResolucion no se ejecuta.
-        // Por lo tanto, el diccionario TiemposDeResolucion estará vacío.
-        Assert.Empty(result.TiemposDeResolucion); // Cambiado de Assert.Equal(X, ...) a Assert.Empty()
-        // =========================================================================
+        Assert.Empty(result.TiemposDeResolucion); 
 
         _ticketRepositoryMock.Verify(repo => repo.ListAllAsync(), Times.Once);
         _userRepositoryMock.Verify(repo => repo.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>()), Times.Once);

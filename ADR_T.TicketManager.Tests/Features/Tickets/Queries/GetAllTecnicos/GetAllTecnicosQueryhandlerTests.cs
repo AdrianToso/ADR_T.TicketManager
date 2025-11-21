@@ -30,7 +30,7 @@ public class GetAllTecnicosQueryhandlerTests
     public async Task Handle_ShouldReturnListOfUserDtos_WhenTecnicosExist()
     {
         // Arrange
-        var query = new GetAllTecnicosQuery(); // PageNumber/Size no se usan en el handler actual
+        var query = new GetAllTecnicosQuery();
         var expectedTecnicos = new List<UserDto>
         {
             new UserDto { Id = Guid.NewGuid(), Nombre = "Tecnico Uno", Mail = "tec1@example.com" },
@@ -46,7 +46,7 @@ public class GetAllTecnicosQueryhandlerTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(expectedTecnicos.Count, result.Count);
-        Assert.Equal(expectedTecnicos, result); // Compara las listas
+        Assert.Equal(expectedTecnicos, result); 
         _identityServiceMock.Verify(s => s.GetUsersInRoleAsync("Tecnico"), Times.Once);
     }
 
@@ -75,7 +75,6 @@ public class GetAllTecnicosQueryhandlerTests
         // Arrange
         var query = new GetAllTecnicosQuery();
 
-        // Simula que el servicio devuelve null
         _identityServiceMock.Setup(s => s.GetUsersInRoleAsync("Tecnico"))
                             .ReturnsAsync((List<UserDto>?)null);
 
@@ -83,7 +82,7 @@ public class GetAllTecnicosQueryhandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result); // El handler devuelve lista vacía, no null
+        Assert.NotNull(result); 
         Assert.Empty(result);
         _identityServiceMock.Verify(s => s.GetUsersInRoleAsync("Tecnico"), Times.Once);
     }
@@ -103,7 +102,7 @@ public class GetAllTecnicosQueryhandlerTests
             _handler.Handle(query, CancellationToken.None));
 
         Assert.Equal("Ocurrió un error al obtener la lista de técnicos.", exception.Message);
-        Assert.Equal(simulatedException, exception.InnerException); // Verificar la excepción interna
+        Assert.Equal(simulatedException, exception.InnerException); 
         _identityServiceMock.Verify(s => s.GetUsersInRoleAsync("Tecnico"), Times.Once);
     }
 }

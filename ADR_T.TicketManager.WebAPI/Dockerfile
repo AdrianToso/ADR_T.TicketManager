@@ -8,8 +8,6 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["ADR_T.TicketManager.WebAPI/ADR_T.TicketManager.WebAPI.csproj", "ADR_T.TicketManager.WebAPI/"]
-# Se asume que estos son tus archivos de proyecto y solución.
-# Asegúrate de que las rutas relativas sean correctas desde el contexto de la construcción.
 COPY ADR_T.TicketManager.sln .
 COPY ADR_T.TicketManager.Core/*.csproj ADR_T.TicketManager.Core/
 COPY ADR_T.TicketManager.Application/*.csproj ADR_T.TicketManager.Application/

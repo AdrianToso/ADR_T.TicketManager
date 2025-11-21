@@ -3,18 +3,28 @@
     "http": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        /* CONFIGURACIÓN PARA CONEXIÓN REMOTA */
+        "CONNECTION_STRING_TICKET": "Server=192.168.1.6,1434;Database=ADR_T_TicketManagerDbDevelopment;User Id=SA;Password=Adr14nt_334;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;",
+        "RABBITMQ_HOST": "192.168.1.6",
+        "RABBITMQ_USER": "admin",
+        "RABBITMQ_PASS": "admin_adr_334"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5230"
     },
     "https": {
-        "commandName": "Project",
-        "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
-        },
-        "dotnetRunMessages": true,
-        "applicationUrl": "https://localhost:5001;http://localhost:5000"
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        /* CONFIGURACIÓN PARA CONEXIÓN REMOTA */
+        "CONNECTION_STRING_TICKET": "Server=192.168.1.6,1434;Database=ADR_T_TicketManagerDbDevelopment;User Id=SA;Password=Adr14nt_334;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;",
+        "RABBITMQ_HOST": "192.168.1.6",
+        "RABBITMQ_USER": "admin",
+        "RABBITMQ_PASS": "admin_adr_334"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",

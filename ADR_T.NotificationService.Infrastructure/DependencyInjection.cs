@@ -5,7 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using ADR_T.NotificationService.Infrastructure.Persistence;
 using ADR_T.NotificationService.Application.Persistence;
 using ADR_T.NotificationService.Application.Consumers;
-using ADR_T.TicketManager.Core.Domain.Events; 
+using ADR_T.TicketManager.Core.Domain.Events;
+using System;
 
 namespace ADR_T.NotificationService.Infrastructure;
 
@@ -15,13 +16,14 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var cs = configuration.GetConnectionString("NotificationConnection")
-                 ?? throw new InvalidOperationException("Falta NotificationConnection");
+        var connectionString = configuration["CONNECTION_STRING_NOTIFICATION"]
+                             ?? configuration.GetConnectionString("NotificationConnection")
+                             ?? throw new InvalidOperationException("La cadena de conexión 'CONNECTION_STRING_NOTIFICATION' o 'NotificationConnection' es requerida.");
+
         services.AddDbContext<NotificationDbContext>(opt =>
-            opt.UseSqlServer(cs));
+            opt.UseSqlServer(connectionString));
         services.AddScoped<INotificationUnitOfWork, NotificationUnitOfWork>();
 
-        //MassTransit, Consumers
         services.AddMassTransit(x =>
         {
             x.AddConsumer<TicketCreadoConsumer>();
@@ -30,14 +32,18 @@ public static class DependencyInjection
 
             x.UsingRabbitMq((context, cfg) =>
             {
-                var rmq = configuration.GetSection("RabbitMQ");
+                var rabbitMqHost = configuration["RABBITMQ_HOST"] ?? configuration.GetSection("RabbitMQ")["Host"] ?? "localhost";
+                var rabbitMqUser = configuration["RABBITMQ_USER"] ?? configuration.GetSection("RabbitMQ")["Username"] ?? "guest";
+                var rabbitMqPass = configuration["RABBITMQ_PASS"] ?? configuration.GetSection("RabbitMQ")["Password"] ?? "guest";
+                var rabbitMqVHost = configuration["RABBITMQ_VIRTUAL_HOST"] ?? configuration.GetSection("RabbitMQ")["VirtualHost"] ?? "/";
+
                 cfg.Host(
-                    rmq["Host"] ?? "localhost",
-                    rmq["VirtualHost"] ?? "/",
+                    rabbitMqHost,
+                    rabbitMqVHost,
                     h =>
                     {
-                        h.Username(rmq["Username"] ?? "guest");
-                        h.Password(rmq["Password"] ?? "guest");
+                        h.Username(rabbitMqUser);
+                        h.Password(rabbitMqPass);
                     });
 
                 cfg.Message<TicketCreadoEvent>(m =>

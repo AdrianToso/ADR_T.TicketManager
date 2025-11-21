@@ -60,13 +60,9 @@ public class AssignTicketCommandHandler : IRequestHandler<AssignTicketCommand, U
         catch (PersistenceException pex) 
         {
             _logger.LogError(pex, "Error de persistencia durante la asignación del Ticket ID: {TicketId}.", request.TicketId);
-            throw; // Relanzar la excepción de persistencia envuelta
+            throw; 
         }
-        //catch (Exception ex)
-        //{
-        //    _logger.LogError(ex, "Error inesperado durante la asignación del Ticket ID: {TicketId}.", request.TicketId);
-        //    throw new Exception("Ocurrió un error inesperado al intentar asignar el ticket.", ex);
-        //}
+     
         return Unit.Value;
     }
 }

@@ -75,8 +75,6 @@ public class UnitOfWork : IUnitOfWork
             .SelectMany(e => e.DomainEvents)
             .ToList();
 
-        // Limpia los eventos de las entidades AHORA, antes de publicarlos
-        // Esto evita problemas si la publicación falla y se reintenta el Commit
         entitiesWithEvents.ForEach(e => e.ClearDomainEvent());
 
         _logger.LogInformation("Publicando {DomainEventCount} eventos de dominio para publicar en el bus...", domainEvents.Count);

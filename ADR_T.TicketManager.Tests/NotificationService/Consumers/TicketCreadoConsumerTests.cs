@@ -10,8 +10,8 @@ using ADR_T.TicketManager.Core.Domain.Events;
 using ADR_T.NotificationService.Domain.Entities;
 using System.Text.Json;
 using System.Threading;
-using ADR_T.TicketManager.Core.Domain.Entities; // Necesario para Ticket
-using ADR_T.TicketManager.Core.Domain.Enums; // Necesario para Enums
+using ADR_T.TicketManager.Core.Domain.Entities; 
+using ADR_T.TicketManager.Core.Domain.Enums;
 
 namespace ADR_T.TicketManager.Tests.NotificationService.Consumers;
 
@@ -36,10 +36,8 @@ public class TicketCreadoConsumerTests
         var userId = Guid.NewGuid();
         var titulo = "Ticket Creado Test";
 
-        // Crear instancia de Ticket para pasar al constructor del evento
         var mockTicket = new Ticket(ticketId, titulo, "Desc", TicketStatus.Abierto, TicketPriority.Media, userId);
 
-        // Usar el constructor PÚBLICO del evento
         var ticketEvent = new TicketCreadoEvent(mockTicket);
 
         var consumeContextMock = new Mock<ConsumeContext<TicketCreadoEvent>>();
@@ -60,12 +58,10 @@ public class TicketCreadoConsumerTests
 
         Assert.NotNull(savedNotification);
         Assert.Equal(nameof(TicketCreadoEvent), savedNotification.EventType);
-        // Verificar mensaje
         string expectedLogMessage = $"TicketCreadoEvent recibido: {ticketEvent.TicketId} - {ticketEvent.Titulo} - Creado por: {ticketEvent.CreadoByUserId}";
         Assert.Equal(expectedLogMessage, savedNotification.Message);
         Assert.True(savedNotification.IsProcessed);
 
-        // Verificar DetailsJson
         var deserializedDetails = JsonSerializer.Deserialize<TicketCreadoEvent>(savedNotification.DetailsJson);
         Assert.NotNull(deserializedDetails);
         Assert.Equal(ticketEvent.TicketId, deserializedDetails.TicketId);

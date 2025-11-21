@@ -369,3 +369,11 @@ FodyWeavers.xsd
 *.rar
 *.tar
 *.gz
+/coverage-report/
+/ADR_T.TicketManager.Webb/
+/ADR_T.TicketManager.Web/
+*.go
+/.env
+/.env
+/.config/
+*launchSettings.json

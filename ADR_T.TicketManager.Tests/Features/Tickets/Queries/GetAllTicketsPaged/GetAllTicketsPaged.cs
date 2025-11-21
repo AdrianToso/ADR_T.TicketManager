@@ -36,10 +36,9 @@ public class GetAllTicketsPagedQueryHandlerTests
         var ticketsFromRepo = new List<Ticket>
         {
             new Ticket("T6", "D6", TicketStatus.Abierto, TicketPriority.Alta, Guid.NewGuid()),
-            // ... (simular 4 tickets más para la página 2)
             new Ticket("T10", "D10", TicketStatus.Abierto, TicketPriority.Baja, Guid.NewGuid())
         };
-        var totalRecordsFromRepo = 23; // Simular total
+        var totalRecordsFromRepo = 23; 
         var expectedDtos = ticketsFromRepo.Select(t => new TicketDto { Id = t.Id, Titulo = t.Titulo, Estado = t.Status.ToString() }).ToList();
 
         _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter))
@@ -97,9 +96,9 @@ public class GetAllTicketsPagedQueryHandlerTests
     public async Task Handle_ShouldCalculateTotalPagesCorrectly_ForPartialLastPage()
     {
         // Arrange
-        var query = new GetAllTicketsPagedQuery { PageNumber = 3, PageSize = 10 }; // Página 3 de 10
-        var ticketsFromRepo = new List<Ticket> { /* 3 tickets */ }; // Simular 3 tickets en la última página
-        var totalRecordsFromRepo = 23; // 2 páginas completas (20) + 3
+        var query = new GetAllTicketsPagedQuery { PageNumber = 3, PageSize = 10 }; 
+        var ticketsFromRepo = new List<Ticket> { /* 3 tickets */ }; 
+        var totalRecordsFromRepo = 23; 
         var expectedDtos = ticketsFromRepo.Select(t => new TicketDto { Id = t.Id }).ToList();
 
         _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter))
@@ -111,6 +110,6 @@ public class GetAllTicketsPagedQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.Equal(3, result.TotalPages); // 23 / 10 = 2.3 -> ceil(2.3) = 3
+        Assert.Equal(3, result.TotalPages); 
     }
 }

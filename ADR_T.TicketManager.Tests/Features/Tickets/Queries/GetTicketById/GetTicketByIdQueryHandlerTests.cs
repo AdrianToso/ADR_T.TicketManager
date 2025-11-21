@@ -35,7 +35,7 @@ public class GetTicketByIdQueryHandlerTests
         var ticketDto = new TicketDto { Titulo = "Titulo", Descripcion = "Descripcion", Estado = "Abierto", Prioridad = "Alta" };
         _mapperMock.Setup(mapper => mapper.Map<TicketDto>(ticket)).Returns(ticketDto);
 
-        var query = new ADR_T.TicketManager.Application.Features.Tickets.Queries.GetTicketById.GetTicketByIdQuery(ticketId); // Fully qualify the type to avoid namespace conflict
+        var query = new ADR_T.TicketManager.Application.Features.Tickets.Queries.GetTicketById.GetTicketByIdQuery(ticketId); 
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

@@ -12,15 +12,19 @@ using ADR_T.TicketManager.Infrastructure.Identity;
 using ADR_T.TicketManager.Application.Contracts.Identity;
 using MassTransit;
 using ADR_T.TicketManager.Core.Domain.Events;
-
+using System; 
 namespace ADR_T.TicketManager.Infrastructure;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        var connectionString = configuration["CONNECTION_STRING_TICKET"]
+                               ?? configuration.GetConnectionString("DefaultConnection"); 
+
+
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+            options.UseSqlServer(connectionString,
                 // Configurar reintentos en caso de fallos transitorios de conexión
                 sqlServerOptionsAction: sqlOptions =>
                 {
@@ -44,7 +48,6 @@ public static class DependencyInjection
         })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
-        services.AddAuthorization(options => Policies.ConfigurarPolicies(options));
 
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ITicketRepository, TicketRepository>();
@@ -61,12 +64,18 @@ public static class DependencyInjection
         {
             x.UsingRabbitMq((context, cfg) =>
             {
-                var rabbitMqConfig = configuration.GetSection("RabbitMQ");
-                cfg.Host(rabbitMqConfig["Host"], rabbitMqConfig["VirtualHost"], h =>
+                var rabbitMqHost = configuration["RABBITMQ_HOST"] ?? "rabbitmq";
+                var rabbitMqUser = configuration["RABBITMQ_USER"] ?? "guest";
+                var rabbitMqPass = configuration["RABBITMQ_PASS"] ?? "guest";
+                var rabbitMqVHost = configuration["RABBITMQ_VIRTUAL_HOST"] ?? configuration.GetSection("RabbitMQ")["VirtualHost"] ?? "/";
+
+                cfg.Host(rabbitMqHost, rabbitMqVHost, h =>
                 {
-                    h.Username(rabbitMqConfig["Username"]);
-                    h.Password(rabbitMqConfig["Password"]);
+                    h.Username(rabbitMqUser);
+                    h.Password(rabbitMqPass);
                 });
+
+                // Registro de mensajes de eventos
                 cfg.Message<TicketAsignadoEvent>(m => m.SetEntityName("ticket_asignado_event"));
                 cfg.Message<TicketCreadoEvent>(m => m.SetEntityName("ticket_creado_event"));
                 cfg.Message<TicketActualizadoEvent>(m => m.SetEntityName("ticket_actualizado_event"));

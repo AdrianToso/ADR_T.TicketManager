@@ -10,7 +10,7 @@ using System;
 using ADR_T.TicketManager.Core.Domain.Enums;
 using ADR_T.TicketManager.Core.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
-using ADR_T.TicketManager.Core.Domain.Events; // Añadido
+using ADR_T.TicketManager.Core.Domain.Events; 
 
 namespace ADR_T.TicketManager.Tests.Features.Tickets.Commands.CreateTicket;
 public class CreateTicketCommandHandlerUnitTests
@@ -19,7 +19,7 @@ public class CreateTicketCommandHandlerUnitTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ITicketRepository> _ticketRepositoryMock;
-    private readonly Mock<ILogger<CreateTicketCommandHandler>> _loggerMock; // Añadido
+    private readonly Mock<ILogger<CreateTicketCommandHandler>> _loggerMock; 
     private readonly CreateTicketCommandHandler _handler;
 
     public CreateTicketCommandHandlerUnitTests()
@@ -27,13 +27,12 @@ public class CreateTicketCommandHandlerUnitTests
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _ticketRepositoryMock = new Mock<ITicketRepository>();
-        _loggerMock = new Mock<ILogger<CreateTicketCommandHandler>>(); // Añadido
+        _loggerMock = new Mock<ILogger<CreateTicketCommandHandler>>(); 
 
         _unitOfWorkMock.Setup(uow => uow.UserRepository).Returns(_userRepositoryMock.Object);
         _unitOfWorkMock.Setup(uow => uow.TicketRepository).Returns(_ticketRepositoryMock.Object);
 
-        // Pasar ILogger al constructor del Handler
-        _handler = new CreateTicketCommandHandler(_unitOfWorkMock.Object, _loggerMock.Object); // Corregido
+        _handler = new CreateTicketCommandHandler(_unitOfWorkMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -60,8 +59,8 @@ public class CreateTicketCommandHandlerUnitTests
             t.Descripcion == command.Descripcion &&
             t.Priority == command.Prioridad &&
             t.CreadoByUserId == userId &&
-            t.Status == TicketStatus.Abierto && // Estado inicial esperado
-            t.DomainEvents.OfType<TicketCreadoEvent>().Any() // Verificar que el evento fue añadido
+            t.Status == TicketStatus.Abierto && 
+            t.DomainEvents.OfType<TicketCreadoEvent>().Any() 
         )), Times.Once);
         _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Once);
         Assert.NotEqual(Guid.Empty, result);

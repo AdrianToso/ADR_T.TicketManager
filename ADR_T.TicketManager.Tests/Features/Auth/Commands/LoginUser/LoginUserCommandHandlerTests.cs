@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System;
 using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Exceptions;
+using ADR_T.TicketManager.Application.Common.Models;
 
 namespace ADR_T.TicketManager.Tests.Features.Auth.Commands.LoginUser;
 

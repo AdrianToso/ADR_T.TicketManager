@@ -1,5 +1,5 @@
 ﻿using Moq;
-using ADR_T.TicketManager.Application.Features.Users.Queries.GetUserById; // Ajustar namespace si es necesario
+using ADR_T.TicketManager.Application.Features.Users.Queries.GetUserById; 
 using ADR_T.TicketManager.Application.Contracts.Identity;
 using ADR_T.TicketManager.Application.DTOs;
 using AutoMapper;
@@ -55,7 +55,7 @@ public class GetUserByIdQueryHandlerTests
         var query = new GetUserByIdQuery(userId);
 
         _identityServiceMock.Setup(s => s.GetUserByIdAsync(userId))
-                            .ReturnsAsync((User?)null); // Usuario no encontrado
+                            .ReturnsAsync((User?)null); 
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -63,11 +63,11 @@ public class GetUserByIdQueryHandlerTests
         // Assert
         Assert.Null(result);
         _identityServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
-        _mapperMock.Verify(m => m.Map<UserDto>(It.IsAny<User>()), Times.Never); // No se debe llamar al mapper si el usuario es null
+        _mapperMock.Verify(m => m.Map<UserDto>(It.IsAny<User>()), Times.Never); 
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNull_WhenMapperReturnsNull() // Caso poco probable pero posible
+    public async Task Handle_ShouldReturnNull_WhenMapperReturnsNull() 
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -76,7 +76,6 @@ public class GetUserByIdQueryHandlerTests
 
         _identityServiceMock.Setup(s => s.GetUserByIdAsync(userId))
                             .ReturnsAsync(domainUser);
-        // Simular que el mapper devuelve null
         _mapperMock.Setup(m => m.Map<UserDto>(domainUser))
                    .Returns((UserDto?)null);
 
@@ -84,7 +83,6 @@ public class GetUserByIdQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        // El handler devuelve directamente lo que retorna el mapper
         Assert.Null(result);
         _identityServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
         _mapperMock.Verify(m => m.Map<UserDto>(domainUser), Times.Once);

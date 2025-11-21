@@ -11,7 +11,7 @@ using ADR_T.NotificationService.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
 using System.Text.Json;
 using System.Threading;
-using ADR_T.TicketManager.Core.Domain.Entities; // Necesario para Ticket
+using ADR_T.TicketManager.Core.Domain.Entities; 
 
 namespace ADR_T.TicketManager.Tests.NotificationService.Consumers;
 
@@ -39,17 +39,14 @@ public class TicketActualizadoConsumerTests
         var statusNuevo = TicketStatus.EnProgreso;
         var prioridadNueva = TicketPriority.Media;
 
-        // Crear una instancia real o mock de Ticket con el estado NUEVO
-        // Necesitamos esto para el constructor público del evento.
+    
         var mockTicket = new Ticket(ticketId, "Ticket Actualizado", "Desc", statusNuevo, prioridadNueva, Guid.NewGuid());
-        // Nota: El CreadoByUserId en el ticket puede no ser relevante para este evento en particular.
-
-        // Usar el constructor PÚBLICO del evento
+        
         var ticketEvent = new TicketActualizadoEvent(
             mockTicket,
             statusAnterior,
             prioridadAnterior,
-            userId // ActualizadoPorUserId
+            userId 
             );
 
         var consumeContextMock = new Mock<ConsumeContext<TicketActualizadoEvent>>();
@@ -70,7 +67,6 @@ public class TicketActualizadoConsumerTests
 
         Assert.NotNull(savedNotification);
         Assert.Equal(nameof(TicketActualizadoEvent), savedNotification.EventType);
-        // Verificar mensaje (asegúrate que coincida con la implementación)
         string expectedLogMessage = $"Ticket Actualizado: ID={ticketEvent.TicketId} - Titulo: {ticketEvent.Titulo}. " +
                                     $"Estado: '{ticketEvent.StatusAnterior}' -> '{ticketEvent.StatusNuevo}'. " +
                                     $"Prioridad: '{ticketEvent.PrioridadAnterior}' -> '{ticketEvent.PrioridadNueva}'. " +
@@ -78,10 +74,8 @@ public class TicketActualizadoConsumerTests
         Assert.Equal(expectedLogMessage, savedNotification.Message);
         Assert.True(savedNotification.IsProcessed);
 
-        // Verificar DetailsJson
         var deserializedDetails = JsonSerializer.Deserialize<TicketActualizadoEvent>(savedNotification.DetailsJson);
         Assert.NotNull(deserializedDetails);
-        // Comparar propiedades clave
         Assert.Equal(ticketEvent.TicketId, deserializedDetails.TicketId);
         Assert.Equal(ticketEvent.Titulo, deserializedDetails.Titulo);
         Assert.Equal(ticketEvent.StatusAnterior, deserializedDetails.StatusAnterior);

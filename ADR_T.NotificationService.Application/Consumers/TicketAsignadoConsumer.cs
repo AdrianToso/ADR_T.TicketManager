@@ -21,10 +21,8 @@ public class TicketAsignadoConsumer : IConsumer<TicketAsignadoEvent>
     public async Task Consume(ConsumeContext<TicketAsignadoEvent> context)
     {
         var evento = context.Message;
-        // --- CORRECCIÓN CLAVE AQUÍ: Usar evento.AsignadoUserId para TecnicoID ---
         string logMessage = $"Ticket Asignado: ID={evento.TicketId} - Titulo: {evento.Titulo} , TecnicoID={evento.AsignadoUserId}, Email= {evento.AsignadoUserMail ?? "N/A"}.";
-        // ---------------------------------------------------------------------
-        _logger.LogWarning(logMessage); // Nivel de log es Warning aquí
+        _logger.LogWarning(logMessage); 
 
         var notification = new NotificationLog
         {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          
+          <Exclude>
+            [*.Infrastructure]*,
+            [*.WebAPI]*,
+            [*.API]*,
+            [*.Tests]*
+          </Exclude>
+          
+          <ExcludeByAttribute>Obfuscation, GeneratedCodeAttribute, CompilerGeneratedAttribute</ExcludeByAttribute>
+          
+          <ExcludeByFile>
+            **/ADR_T.TicketManager.Application/DTOs/**/*.cs,
+            **/ADR_T.TicketManager.Core/Domain/Exceptions/**/*.cs,
+            **/ADR_T.TicketManager.Infrastructure/Migrations/**/*.cs
+          </ExcludeByFile>
+          
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

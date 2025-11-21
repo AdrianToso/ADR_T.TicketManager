@@ -3,7 +3,11 @@
     "http": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CONNECTION_STRING_NOTIFICATION": "Server=192.168.1.6,1434;Database=ADR_T_NotificationDb_dev;User Id=SA;Password=Adr14nt_334;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;",
+        "RABBITMQ_HOST": "192.168.1.6",
+        "RABBITMQ_USER": "admin",
+        "RABBITMQ_PASS": "admin_adr_334"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5070"
@@ -11,7 +15,11 @@
     "https": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CONNECTION_STRING_NOTIFICATION": "Server=192.168.1.6,1434;Database=ADR_T_NotificationDb_dev;User Id=SA;Password=Adr14nt_334;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;",
+        "RABBITMQ_HOST": "192.168.1.6",
+        "RABBITMQ_USER": "admin",
+        "RABBITMQ_PASS": "admin_adr_334"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7173;http://localhost:5070"

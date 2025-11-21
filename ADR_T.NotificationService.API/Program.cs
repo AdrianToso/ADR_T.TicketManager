@@ -3,24 +3,26 @@ using ADR_T.NotificationService.Infrastructure.Persistence;
 using ADR_T.NotificationService.Application;
 using ADR_T.NotificationService.Infrastructure;
 using Serilog;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Logging;
 
 // Configuración de logs con Serilog
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .WriteTo.Console()
-    .WriteTo.File("logs/notificationservice-.log", rollingInterval: RollingInterval.Day)
-    .CreateBootstrapLogger();
+  .MinimumLevel.Information()
+  .WriteTo.Console()
+  .WriteTo.File("logs/notificationservice-.log", rollingInterval: RollingInterval.Day)
+  .CreateBootstrapLogger();
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
 
     builder.Host.UseSerilog((context, service, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(service)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File("logs/notificationservice-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7));
+      .ReadFrom.Configuration(context.Configuration)
+      .ReadFrom.Services(service)
+      .Enrich.FromLogContext()
+      .WriteTo.Console()
+      .WriteTo.File("logs/notificationservice-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7));
 
     Log.Information("Configurando el servicio de notificaciones...");
 
@@ -41,11 +43,11 @@ try
         logger.LogInformation("Swagger habilitado en modo Desarrollo.");
     }
 
- //   app.UseHttpsRedirection();
+    //   app.UseHttpsRedirection();
 
     app.MapGet("/", () => $"ADR_T Notification Service ({app.Environment.EnvironmentName}) Anda!");
 
-    ApplyMigrations(app);
+    await ApplyMigrationsAsync(app, (Microsoft.Extensions.Logging.ILogger)logger);
 
     logger.LogInformation("Iniciando la aplicación de Notificaciones...");
     app.Run();
@@ -58,21 +60,21 @@ finally
 {
     Log.CloseAndFlush();
 }
-static void ApplyMigrations(IApplicationBuilder app) 
+
+static async Task ApplyMigrationsAsync(WebApplication app, Microsoft.Extensions.Logging.ILogger logger)
 {
-    using (var scope = app.ApplicationServices.CreateScope()) 
+    using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
         try
         {
-            Console.WriteLine("Aplicando migraciones de NotificationDbContext...");
-            dbContext.Database.Migrate();
-            Console.WriteLine("Migraciones aplicadas exitosamente.");
+            logger.LogInformation("Aplicando migraciones de NotificationDbContext...");
+            await dbContext.Database.MigrateAsync();
+            logger.LogInformation("Migraciones aplicadas exitosamente para NotificationDbContext.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error aplicando migraciones: {ex.Message}");
-           
+            logger.LogError(ex, "ERROR CRÍTICO: Error aplicando migraciones para NotificationDbContext.");
         }
     }
 }

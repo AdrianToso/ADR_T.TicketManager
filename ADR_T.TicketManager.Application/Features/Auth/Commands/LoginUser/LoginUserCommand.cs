@@ -7,4 +7,4 @@ namespace ADR_T.TicketManager.Application.Features.Auth.Commands.LoginUser;
         string Password
     ) : IRequest<LoginResponse>;
 
-public record LoginResponse(string Token, Guid UserId);
+

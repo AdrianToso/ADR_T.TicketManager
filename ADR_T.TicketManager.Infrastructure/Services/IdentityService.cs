@@ -8,6 +8,7 @@ using ADR_T.TicketManager.Application.Contracts.Identity;
 using ADR_T.TicketManager.Application.DTOs;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
 using AutoMapper;
+using ADR_T.TicketManager.Application.Common.Models;
 
 namespace ADR_T.TicketManager.Infrastructure.Identity;
 public class IdentityService : IIdentityService
