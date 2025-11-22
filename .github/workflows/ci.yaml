@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0 
 
-      - name: 2. Configurar Caching de NuGet (🥈 ADOPCIÓN AVANZADA)
+      - name: 2. Configurar Caching de NuGet
         uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
@@ -84,7 +84,7 @@ jobs:
           path: coverage_report
 
       - name: 10. Subir Artefacto de la Aplicación
-        # Este artefacto se usará si se implementa un job de despliegue posterior (CD)
+        # Este artefacto se usará si se implementa un job de despliegue posterior
         uses: actions/upload-artifact@v4
         with:
           name: net-app-publish

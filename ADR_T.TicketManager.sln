@@ -54,8 +54,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlserver_image", "sqlserve
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{5C961463-CA16-4DD6-8AC0-50B6A042391D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADR_T.TicketManager.Web", "ADR_T.TicketManager.Webb\ADR_T.TicketManager.Web.csproj", "{AFCE945D-CD7D-4603-85F9-202047AC9944}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
