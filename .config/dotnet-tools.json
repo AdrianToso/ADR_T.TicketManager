@@ -7,10 +7,16 @@
       "commands": [
         "reportgenerator"
       ]
-    }
-     "dotnet-format": {
-       "version": "7.0.401",
-       "commands": ["dotnet-format"]
+    }, 
+    "dotnet-format": {
+      "version": "7.0.401",
+      "commands": ["dotnet-format"]
+    }, 
+    "dotnet-outdated-tool": {
+      "version": "5.3.1",
+      "commands": [
+        "dotnet-outdated"
+      ]
     }
   }
 }
