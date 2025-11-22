@@ -7,7 +7,6 @@
           <Format>cobertura</Format>
           
           <Exclude>
-            [*.Infrastructure]*,
             [*.WebAPI]*,
             [*.API]*,
             [*.Tests]*
