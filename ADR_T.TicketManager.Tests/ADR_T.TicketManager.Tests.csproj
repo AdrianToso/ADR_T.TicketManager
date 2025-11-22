@@ -8,7 +8,7 @@
 	<EnableNETSdkPublishing>false</EnableNETSdkPublishing>
   </PropertyGroup>
 
-  <ItemGroup>
+<ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -21,18 +21,22 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
+</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ADR_T.NotificationService.API\ADR_T.NotificationService.API.csproj" />
+<ItemGroup>
+    <ProjectReference Include="..\ADR_T.NotificationService.API\ADR_T.NotificationService.API.csproj">
+        <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
     <ProjectReference Include="..\ADR_T.NotificationService.Application\ADR_T.NotificationService.Application.csproj" />
     <ProjectReference Include="..\ADR_T.NotificationService.Domain\ADR_T.NotificationService.Domain.csproj" />
     <ProjectReference Include="..\ADR_T.NotificationService.Infrastructure\ADR_T.NotificationService.Infrastructure.csproj" />
     <ProjectReference Include="..\ADR_T.TicketManager.Application\ADR_T.TicketManager.Application.csproj" />
     <ProjectReference Include="..\ADR_T.TicketManager.Core\ADR_T.TicketManager.Core.csproj" />
     <ProjectReference Include="..\ADR_T.TicketManager.Infrastructure\ADR_T.TicketManager.Infrastructure.csproj" />
-    <ProjectReference Include="..\ADR_T.TicketManager.WebAPI\ADR_T.TicketManager.WebAPI.csproj" />
-  </ItemGroup>
+    <ProjectReference Include="..\ADR_T.TicketManager.WebAPI\ADR_T.TicketManager.WebAPI.csproj">
+        <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
+</ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
