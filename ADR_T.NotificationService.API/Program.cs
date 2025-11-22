@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+Ôªøusing Microsoft.EntityFrameworkCore;
 using ADR_T.NotificationService.Infrastructure.Persistence;
 using ADR_T.NotificationService.Application;
 using ADR_T.NotificationService.Infrastructure;
@@ -6,7 +6,7 @@ using Serilog;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 
-// ConfiguraciÛn de logs con Serilog
+// Configuraci√≥n de logs con Serilog
 Log.Logger = new LoggerConfiguration()
   .MinimumLevel.Information()
   .WriteTo.Console()
@@ -34,7 +34,7 @@ try
 
     var app = builder.Build();
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("AplicaciÛn de Notificaciones construida.");
+    logger.LogInformation("Aplicaci√≥n de Notificaciones construida.");
 
     if (app.Environment.IsDevelopment())
     {
@@ -43,18 +43,18 @@ try
         logger.LogInformation("Swagger habilitado en modo Desarrollo.");
     }
 
-    //† †app.UseHttpsRedirection();
+    //¬† ¬†app.UseHttpsRedirection();
 
     app.MapGet("/", () => $"ADR_T Notification Service ({app.Environment.EnvironmentName}) Anda!");
 
-† † await ApplyMigrationsAsync(app, (Microsoft.Extensions.Logging.ILogger)logger);
+¬† ¬† await ApplyMigrationsAsync(app, (Microsoft.Extensions.Logging.ILogger)logger);
 
-    logger.LogInformation("Iniciando la aplicaciÛn de Notificaciones...");
+    logger.LogInformation("Iniciando la aplicaci√≥n de Notificaciones...");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "La aplicaciÛn de Notificaciones fallÛ al iniciar.");
+    Log.Fatal(ex, "La aplicaci√≥n de Notificaciones fall√≥ al iniciar.");
 }
 finally
 {
@@ -63,18 +63,18 @@ finally
 
 static async Task ApplyMigrationsAsync(WebApplication app, Microsoft.Extensions.Logging.ILogger logger)
 {
-† † using (var scope = app.Services.CreateScope())
+¬† ¬† using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
         try
         {
             logger.LogInformation("Aplicando migraciones de NotificationDbContext...");
-† † † † † † await dbContext.Database.MigrateAsync();
+¬† ¬† ¬† ¬† ¬† ¬† await dbContext.Database.MigrateAsync();
             logger.LogInformation("Migraciones aplicadas exitosamente para NotificationDbContext.");
         }
         catch (Exception ex)
         {
-† † † † † † logger.LogError(ex, "ERROR CRÕTICO: Error aplicando migraciones para NotificationDbContext.");
+¬† ¬† ¬† ¬† ¬† ¬† logger.LogError(ex, "ERROR CR√çTICO: Error aplicando migraciones para NotificationDbContext.");
         }
     }
 }

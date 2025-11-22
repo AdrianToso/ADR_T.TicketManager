@@ -7,7 +7,7 @@ param (
 # --- CONFIGURACIÓN DE UMBRALES ---
 $coreThreshold = 90
 $applicationThreshold = 80
-$infrastructureThreshold = 50
+$infrastructureThreshold = 75
 # ---------------------------------
 
 Write-Host "Ejecutando script de cobertura por capas..."
@@ -71,30 +71,33 @@ $infrastructureCoverage = Get-CoverageForAssembly "ADR_T.TicketManager.Infrastru
 
 Write-Host "    - Core: $coreCoverage% (Requerido: $coreThreshold%)"
 Write-Host "    - Application: $applicationCoverage% (Requerido: $applicationThreshold%)"
-Write-Host "   - Infrastructure: $infrastructureCoverage% (Requerido: $infrastructureThreshold%)"
+Write-Host "   - Infrastructure: $infrastructureCoverage% (Requerido: $infrastructureThreshold%)"
 
 $commitAllowed = $true
 if ($coreCoverage -lt $coreThreshold) { $commitAllowed = $false }
 if ($applicationCoverage -lt $applicationThreshold) { $commitAllowed = $false }
 if ($infrastructureCoverage -lt $infrastructureThreshold) { $commitAllowed = $false }
 
-Write-Host "  -> Paso 4: Generando informe HTML de cobertura..."
+Write-Host "  -> Paso 4: Generando informe HTML de cobertura..."
 try {
-    if (Test-Path $htmlReportDir) { Remove-Item -Recurse -Force $htmlReportDir }
+    if (Test-Path $htmlReportDir) { Remove-Item -Recurse -Force $htmlReportDir }
+    
+    # Eliminada la definición de $reportGeneratorPath (P2.1)
     
-    $reportGeneratorPath = "$solutionDir/.config/reportgenerator"
-    $reportGeneratorArgs = @(
-        "-reports:$coverageReportPath",
-        "-targetdir:$htmlReportDir",
-        "-reporttypes:Html"
-    )
-    
-    & $reportGeneratorPath $reportGeneratorArgs | Out-Null
+    $reportGeneratorArgs = @(
+        "-reports:$coverageReportPath",
+        "-targetdir:$htmlReportDir",
+        "-reporttypes:Html"
+    )
+    
+    # INVOCACIÓN ESTANDARIZADA (P2.2): Usando dotnet tool run reportgenerator
+    & dotnet tool run reportgenerator -- $reportGeneratorArgs | Out-Null
 
-    Write-Host "  -> OK: Informe HTML generado en la carpeta '$htmlReportDir'." -ForegroundColor Green
+    Write-Host "  -> OK: Informe HTML generado en la carpeta '$htmlReportDir'." -ForegroundColor Green
 } catch {
-    Write-Host "  -> ERROR: Falló la generación del informe HTML. Asegúrate de tener 'dotnet-reportgenerator-globaltool' instalado localmente." -ForegroundColor Red
-    Write-Host "      Ejecuta: dotnet tool install dotnet-reportgenerator-globaltool --tool-path ./.config"
+    Write-Host "  -> ERROR: Falló la generación del informe HTML." -ForegroundColor Red
+    # Mensaje de error actualizado para reflejar el nuevo proceso de tooling
+    Write-Host "      Asegúrese de que el manifiesto (.config/dotnet-tools.json) sea correcto y ejecute 'dotnet tool restore'."
 }
 
 if ($OpenReport) {

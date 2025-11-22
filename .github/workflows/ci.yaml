@@ -1,0 +1,94 @@
+name: Continuous Integration - Quality Gate
+
+# Permisos mínimos requeridos para leer código y escribir eventos de seguridad/artefactos
+permissions:
+  contents: read
+  security-events: write
+
+on:
+  push:
+    branches:
+      - main 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Construcción, Pruebas y Cobertura (Quality Gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 
+    
+    env:
+      ConnectionStrings__DefaultConnection: Server=localhost;Database=ticket_manager_test;Trusted_Connection=false;MultipleActiveResultSets=true
+      JWT__Secret: test_jwt_secret_key_min_32_chars_1234567890
+      ASPNETCORE_ENVIRONMENT: Testing
+      LOGGING__LEVEL: Warning 
+      DOTNET_VERSION: '9.0.x'
+
+    steps:
+      - name: 1. Checkout del Código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: 2. Configurar Caching de NuGet
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: 3. Configurar .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 4. Restaurar Dependencias (NuGet y Local Tools)
+        # Esto restaura packages y luego las herramientas locales (ReportGenerator)
+        run: |
+          dotnet restore 
+          dotnet tool restore
+
+      - name: 5. Construir Solución
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 6. Ejecutar Pruebas y Cobertura (Quality Gate Check)
+        # Ejecuta las pruebas y Coverlet. El fallo de umbral será gestionado por el resultado del comando.
+        run: |
+          dotnet test ADR_T.TicketManager.Tests/ADR_T.TicketManager.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --settings solution.runsettings \
+            --collect:"XPlat Code Coverage;Format=cobertura" \
+            --results-directory TestResults \
+            --logger "console;verbosity=normal"
+
+      - name: 7. Generar Reporte HTML (Usando dotnet tool run)
+        run: |
+          COBERTURA_FILE=$(find TestResults -name "coverage.cobertura.xml" | head -n 1)
+          
+          dotnet tool run reportgenerator -- \
+            -reports:$COBERTURA_FILE \
+            -targetdir:coverage_report \
+            -reporttypes:Html
+
+      - name: 8. Publicar Proyectos Desplegables (Preparación para CD)
+        # SOLUCIÓN CRÍTICA: Se publica cada API a su propio directorio para evitar NETSDK1152.
+        run: |
+          dotnet publish ADR_T.TicketManager.WebAPI/ADR_T.TicketManager.WebAPI.csproj --configuration Release --output ./publish/webapi --no-build
+          dotnet publish ADR_T.NotificationService.API/ADR_T.NotificationService.API.csproj --configuration Release --output ./publish/notifications --no-build
+
+      - name: 9. Subir Artefacto de Cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: coverage_report
+
+      - name: 10. Subir Artefacto de la Aplicación
+        # Este artefacto ahora contiene ./publish/webapi y ./publish/notifications
+        uses: actions/upload-artifact@v4
+        with:
+          name: net-app-publish
+          path: ./publish
