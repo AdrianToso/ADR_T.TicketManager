@@ -1,13 +1,13 @@
-﻿using MediatR;
-using ADR_T.TicketManager.Core.Domain.Interfaces;
+﻿using ADR_T.TicketManager.Application.Contracts.Identity;
 using ADR_T.TicketManager.Core.Domain.Exceptions;
-using ADR_T.TicketManager.Application.Contracts.Identity;
+using ADR_T.TicketManager.Core.Domain.Interfaces;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace ADR_T.TicketManager.Application.Features.Auth.Commands.LoginUser;
 public sealed class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginResponse>
 {
-    private readonly IIdentityService _identityService; 
+    private readonly IIdentityService _identityService;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly ILogger<LoginUserCommandHandler> _logger;
 
@@ -28,7 +28,7 @@ public sealed class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, 
         if (!userDetails.Succeeded)
         {
             _logger.LogWarning("Intento de login fallido para email {Email}: Usuario no encontrado.", request.Email);
-            throw new DomainException("Credenciales invalidas"); 
+            throw new DomainException("Credenciales invalidas");
         }
 
         var passwordValid = await _identityService.CheckPasswordAsync(userDetails.UserId, request.Password);
@@ -36,7 +36,7 @@ public sealed class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, 
         if (!passwordValid)
         {
             _logger.LogWarning("Intento de login fallido para email {Email} (ID: {UserId}): Contraseña incorrecta.", request.Email, userDetails.UserId);
-            throw new DomainException("Credenciales invalidas"); 
+            throw new DomainException("Credenciales invalidas");
         }
 
         var userForToken = await _identityService.GetUserByIdAsync(userDetails.UserId);

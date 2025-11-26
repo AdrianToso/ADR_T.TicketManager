@@ -3,5 +3,7 @@
 namespace ADR_T.TicketManager.Core.Domain.Interfaces;
 public interface IUserRepository : IRepository<User>
 {
-    Task<List<User>> GetByIdsAsync(IEnumerable<Guid> userIds);
+    Task<IReadOnlyList<User>> GetByIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken = default);
 }

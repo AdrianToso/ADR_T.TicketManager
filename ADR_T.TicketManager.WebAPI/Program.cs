@@ -14,11 +14,11 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-builder.Services.AddCoreServices(); 
+builder.Services.AddCoreServices();
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration); 
+builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddAuthenticationAndAuthorization(builder.Configuration); 
+builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
 builder.Services.AddCorsConfiguration(builder.Configuration);
 
 builder.Services.AddSwaggerConfiguration();

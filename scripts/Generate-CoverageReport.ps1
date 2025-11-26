@@ -17,7 +17,7 @@ Write-Host "Generando y abriendo el informe de cobertura..." -ForegroundColor Cy
 $currentScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # Construir la ruta al script principal
-$mainScriptPath = Join-Path $currentScriptDir "Check-Coverage.ps1"
+$mainScriptPath = Join-Path $currentScriptDir "validate-coverage.ps1"
 
 # Ejecutar el script principal con el parámetro -OpenReport
 # Usamos 'try...finally' para asegurarnos de que el mensaje final se muestre,

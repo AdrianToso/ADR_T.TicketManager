@@ -1,59 +1,50 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using ADR_T.TicketManager.Core.Domain.Entities;
+﻿using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
 using ADR_T.TicketManager.Infrastructure.Persistence.Identity;
-using System;
-using System.Threading; 
-using System.Threading.Tasks; 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
-namespace ADR_T.TicketManager.Infrastructure.Persistence
+public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IDomainEventContext
 {
-    public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IDbContext
+    public virtual DbSet<User> DomainUsers { get; set; }
+    public virtual DbSet<Ticket> Tickets { get; set; }
+    public virtual DbSet<TicketComment> TicketComments { get; set; }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public DbSet<User> Users { get; set; }
-        public DbSet<Ticket> Tickets { get; set; }
-        public DbSet<TicketComment> TicketComments { get; set; }
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        SetGlobalQueryFilters(modelBuilder);
+    }
 
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+    private static void SetGlobalQueryFilters(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            if (typeof(EntityBase).IsAssignableFrom(entityType.ClrType))
+            {
+                var method = typeof(AppDbContext).GetMethod(nameof(ApplySoftDeleteFilter), BindingFlags.NonPublic | BindingFlags.Static)!
+                    .MakeGenericMethod(entityType.ClrType);
 
+                method.Invoke(null, new object[] { modelBuilder });
+            }
         }
-
-        void IDbContext.Add<TEntity>(TEntity entity) where TEntity : class
-        {
-            base.Add(entity);
-        }
-
-        void IDbContext.Update<TEntity>(TEntity entity) where TEntity : class
-        {
-            base.Update(entity);
-        }
-
-        void IDbContext.Remove<TEntity>(TEntity entity) where TEntity : class
-        {
-            base.Remove(entity);
-        }
-
-        async Task<TEntity?> IDbContext.FindAsync<TEntity>(params object[] keyValues) where TEntity : class
-        {
-            return await base.FindAsync<TEntity>(keyValues);
-        }
-
-        // Sobrecarga SaveChangesAsync de IDbContext
-        async Task<int> IDbContext.SaveChangesAsync(CancellationToken cancellationToken)
-        {
-            return await base.SaveChangesAsync(cancellationToken);
-        }
-
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            return await base.SaveChangesAsync(cancellationToken);
-        }
+    }
+    public IEnumerable<EntityBase> GetEntitiesWithEvents()
+    {
+        return ChangeTracker
+            .Entries<EntityBase>()
+            .Where(x => x.Entity.DomainEvents?.Any() == true)
+            .Select(x => x.Entity)
+            .ToList();
+    }
+    private static void ApplySoftDeleteFilter<TEntity>(ModelBuilder modelBuilder) where TEntity : EntityBase
+    {
+        modelBuilder.Entity<TEntity>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

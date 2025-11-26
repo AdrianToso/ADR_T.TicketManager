@@ -4,5 +4,5 @@ namespace ADR_T.TicketManager.Core.Domain.Interfaces;
 
 public interface IJwtTokenGenerator
 {
-   Task<string> GenerateTokenAsync(User user);
+    Task<string> GenerateTokenAsync(User user);
 }

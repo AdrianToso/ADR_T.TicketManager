@@ -5,21 +5,21 @@ using ADR_T.TicketManager.Core.Domain.Exceptions;
 namespace ADR_T.TicketManager.Core.Domain.Entities;
 public class Ticket : EntityBase
 {
-    public string Titulo { get; private set; }
-    public string Descripcion { get; private set; }
+    public string Titulo { get; private set; } = null!;
+    public string Descripcion { get; private set; } = null!;
     public TicketStatus Status { get; private set; }
     public TicketPriority Priority { get; private set; }
 
-    public Guid CreadoByUserId {  get; private set; }
-    public User CreadoByUser { get; private set; }
-    public Guid? AsignadoUserId { get; private set; }
-    public User AsignadoUser { get; private set; }
+    public Guid CreadoByUserId { get; private set; }
+    public User CreadoByUser { get; private set; } = null!;
+    public Guid? AsignadoUserId { get; private set; } = null!;
+    public User AsignadoUser { get; private set; } = null!;
 
     private readonly List<TicketComment> _comments = new();
     public IReadOnlyCollection<TicketComment> Comments => _comments.AsReadOnly();
     #region constructores
     private Ticket() { }
-    public Ticket(string titulo, string descripcion, TicketStatus status, TicketPriority priority, Guid creadoByUserId) :base()
+    public Ticket(string titulo, string descripcion, TicketStatus status, TicketPriority priority, Guid creadoByUserId) : base()
     {
         Titulo = titulo;
         Descripcion = descripcion;

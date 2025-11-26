@@ -15,7 +15,8 @@ public static class ServiceExtensions
     public static IServiceCollection AddCoreServices(this IServiceCollection services)
     {
         // Configurar serialización de Enums como strings
-        services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => {
+        services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+        {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
 
@@ -84,7 +85,7 @@ public static class ServiceExtensions
 
             options.AddPolicy("AllowAngular", builder =>
             {
-                builder.WithOrigins(allowedOrigin) 
+                builder.WithOrigins(allowedOrigin)
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials();
@@ -99,7 +100,7 @@ public static class ServiceExtensions
         services.AddSwaggerGen(c =>
         {
             c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
-            c.SchemaFilter<EnumSchemaFilter>(); 
+            c.SchemaFilter<EnumSchemaFilter>();
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ticket Manager API", Version = "v1" });
 
             // Define el esquema de seguridad JWT

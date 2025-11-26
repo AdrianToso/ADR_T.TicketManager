@@ -1,5 +1,5 @@
-﻿using MediatR;
-using ADR_T.TicketManager.Core.Domain.Enums;
+﻿using ADR_T.TicketManager.Core.Domain.Enums;
+using MediatR;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Commands.UpdateTicket;
 public class UpdateTicketCommand : IRequest<Unit>

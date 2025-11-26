@@ -1,15 +1,8 @@
-﻿using Xunit;
-using Moq;
-using MediatR;
+﻿using Moq;
 using ADR_T.TicketManager.Application.Features.Tickets.Queries.GetAllTicketsPaged;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
 using ADR_T.TicketManager.Application.DTOs;
 using AutoMapper;
-using System.Threading;
-using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
 
@@ -35,14 +28,18 @@ public class GetAllTicketsPagedQueryHandlerTests
         var query = new GetAllTicketsPagedQuery { PageNumber = 2, PageSize = 5, StatusFilter = TicketStatus.Abierto };
         var ticketsFromRepo = new List<Ticket>
         {
-            new Ticket("T6", "D6", TicketStatus.Abierto, TicketPriority.Alta, Guid.NewGuid()),
-            new Ticket("T10", "D10", TicketStatus.Abierto, TicketPriority.Baja, Guid.NewGuid())
+            new Ticket(Guid.NewGuid(), "T6", "D6", TicketStatus.Abierto, TicketPriority.Alta, Guid.NewGuid()),
+            new Ticket(Guid.NewGuid(), "T10", "D10", TicketStatus.Abierto, TicketPriority.Baja, Guid.NewGuid())
         };
-        var totalRecordsFromRepo = 23; 
+        var totalRecordsFromRepo = 23;
         var expectedDtos = ticketsFromRepo.Select(t => new TicketDto { Id = t.Id, Titulo = t.Titulo, Estado = t.Status.ToString() }).ToList();
 
-        _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter))
-                             .ReturnsAsync((ticketsFromRepo, totalRecordsFromRepo));
+        _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(
+                query.PageNumber,
+                query.PageSize,
+                query.StatusFilter,
+                It.IsAny<CancellationToken>()))
+             .ReturnsAsync((ticketsFromRepo, totalRecordsFromRepo));
 
         _mapperMock.Setup(m => m.Map<List<TicketDto>>(ticketsFromRepo))
                    .Returns(expectedDtos);
@@ -58,7 +55,12 @@ public class GetAllTicketsPagedQueryHandlerTests
         Assert.Equal(totalRecordsFromRepo, result.TotalRecords);
         Assert.Equal((int)Math.Ceiling(totalRecordsFromRepo / (double)query.PageSize), result.TotalPages);
 
-        _ticketRepositoryMock.Verify(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter), Times.Once);
+        _ticketRepositoryMock.Verify(repo => repo.GetPagedTicketsAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.StatusFilter,
+            It.IsAny<CancellationToken>()), Times.Once);
+
         _mapperMock.Verify(m => m.Map<List<TicketDto>>(ticketsFromRepo), Times.Once);
     }
 
@@ -67,12 +69,16 @@ public class GetAllTicketsPagedQueryHandlerTests
     {
         // Arrange
         var query = new GetAllTicketsPagedQuery { PageNumber = 1, PageSize = 10, StatusFilter = TicketStatus.Cerrado };
-        var ticketsFromRepo = new List<Ticket>(); // Lista vacía
+        var ticketsFromRepo = new List<Ticket>();
         var totalRecordsFromRepo = 0;
         var expectedDtos = new List<TicketDto>();
 
-        _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter))
-                             .ReturnsAsync((ticketsFromRepo, totalRecordsFromRepo));
+        _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.StatusFilter,
+            It.IsAny<CancellationToken>()))
+             .ReturnsAsync((ticketsFromRepo, totalRecordsFromRepo));
 
         _mapperMock.Setup(m => m.Map<List<TicketDto>>(ticketsFromRepo))
                    .Returns(expectedDtos);
@@ -88,7 +94,11 @@ public class GetAllTicketsPagedQueryHandlerTests
         Assert.Equal(0, result.TotalRecords);
         Assert.Equal(0, result.TotalPages);
 
-        _ticketRepositoryMock.Verify(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter), Times.Once);
+        _ticketRepositoryMock.Verify(repo => repo.GetPagedTicketsAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.StatusFilter,
+            It.IsAny<CancellationToken>()), Times.Once);
         _mapperMock.Verify(m => m.Map<List<TicketDto>>(ticketsFromRepo), Times.Once);
     }
 
@@ -96,13 +106,23 @@ public class GetAllTicketsPagedQueryHandlerTests
     public async Task Handle_ShouldCalculateTotalPagesCorrectly_ForPartialLastPage()
     {
         // Arrange
-        var query = new GetAllTicketsPagedQuery { PageNumber = 3, PageSize = 10 }; 
-        var ticketsFromRepo = new List<Ticket> { /* 3 tickets */ }; 
-        var totalRecordsFromRepo = 23; 
+        var query = new GetAllTicketsPagedQuery { PageNumber = 3, PageSize = 10, StatusFilter = null };
+        var ticketsFromRepo = new List<Ticket>();
+        var totalRecordsFromRepo = 23;
+
+        for (int i = 0; i < 3; i++)
+        {
+            ticketsFromRepo.Add(new Ticket(Guid.NewGuid(), $"T{i}", $"D{i}", TicketStatus.Abierto, TicketPriority.Alta, Guid.NewGuid()));
+        }
         var expectedDtos = ticketsFromRepo.Select(t => new TicketDto { Id = t.Id }).ToList();
 
-        _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(query.PageNumber, query.PageSize, query.StatusFilter))
-                             .ReturnsAsync((ticketsFromRepo, totalRecordsFromRepo));
+        _ticketRepositoryMock.Setup(repo => repo.GetPagedTicketsAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.StatusFilter,
+            It.IsAny<CancellationToken>()))
+             .ReturnsAsync((ticketsFromRepo, totalRecordsFromRepo));
+
         _mapperMock.Setup(m => m.Map<List<TicketDto>>(ticketsFromRepo)).Returns(expectedDtos);
 
 
@@ -110,6 +130,12 @@ public class GetAllTicketsPagedQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.Equal(3, result.TotalPages); 
+        Assert.Equal(3, result.TotalPages);
+
+        _ticketRepositoryMock.Verify(repo => repo.GetPagedTicketsAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.StatusFilter,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }

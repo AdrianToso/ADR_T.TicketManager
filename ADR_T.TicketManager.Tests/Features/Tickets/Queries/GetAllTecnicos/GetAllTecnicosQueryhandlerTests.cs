@@ -46,7 +46,7 @@ public class GetAllTecnicosQueryhandlerTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(expectedTecnicos.Count, result.Count);
-        Assert.Equal(expectedTecnicos, result); 
+        Assert.Equal(expectedTecnicos, result);
         _identityServiceMock.Verify(s => s.GetUsersInRoleAsync("Tecnico"), Times.Once);
     }
 
@@ -82,7 +82,7 @@ public class GetAllTecnicosQueryhandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result); 
+        Assert.NotNull(result);
         Assert.Empty(result);
         _identityServiceMock.Verify(s => s.GetUsersInRoleAsync("Tecnico"), Times.Once);
     }
@@ -102,7 +102,7 @@ public class GetAllTecnicosQueryhandlerTests
             _handler.Handle(query, CancellationToken.None));
 
         Assert.Equal("Ocurrió un error al obtener la lista de técnicos.", exception.Message);
-        Assert.Equal(simulatedException, exception.InnerException); 
+        Assert.Equal(simulatedException, exception.InnerException);
         _identityServiceMock.Verify(s => s.GetUsersInRoleAsync("Tecnico"), Times.Once);
     }
 }

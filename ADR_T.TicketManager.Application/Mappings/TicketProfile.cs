@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using ADR_T.TicketManager.Application.DTOs;
+﻿using ADR_T.TicketManager.Application.DTOs;
 using ADR_T.TicketManager.Core.Domain.Entities;
+using AutoMapper;
 
 namespace ADR_T.TicketManager.Application.Mappings;
 public class TicketProfile : Profile

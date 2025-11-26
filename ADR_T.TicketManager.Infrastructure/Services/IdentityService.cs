@@ -25,7 +25,7 @@ public class IdentityService : IIdentityService
         RoleManager<IdentityRole<Guid>> roleManager,
         AppDbContext dbContext,
         ILogger<IdentityService> logger,
-        IUserRepository usersRepository, 
+        IUserRepository usersRepository,
         IMapper mapper)
     {
         _userManager = userManager;
@@ -33,7 +33,7 @@ public class IdentityService : IIdentityService
         _dbContext = dbContext;
         _logger = logger;
         _usersRepository = usersRepository;
-        _mapper = mapper; 
+        _mapper = mapper;
     }
     public async Task<List<UserDto>> GetUsersInRoleAsync(string roleName)
     {
@@ -42,21 +42,21 @@ public class IdentityService : IIdentityService
         if (_userManager == null)
         {
             _logger.LogError("UserManager no fue inyectado correctamente en IdentityService.");
-            return new List<UserDto>(); 
+            return new List<UserDto>();
         }
         if (_usersRepository == null)
         {
             _logger.LogError("IUserRepository no fue inyectado correctamente en IdentityService.");
-            return new List<UserDto>(); 
+            return new List<UserDto>();
         }
         if (_mapper == null)
         {
             _logger.LogError("IMapper no fue inyectado correctamente en IdentityService.");
-            return new List<UserDto>(); 
+            return new List<UserDto>();
         }
 
         var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
-        if (usersInRole == null || !usersInRole.Any()) 
+        if (usersInRole == null || !usersInRole.Any())
         {
             _logger.LogWarning("No se encontraron usuarios Identity para el rol: {RoleName}", roleName);
             return new List<UserDto>();
@@ -157,7 +157,7 @@ public class IdentityService : IIdentityService
     public async Task<User> GetUserByIdAsync(Guid userId)
     {
         _logger.LogDebug("Buscando usuario de dominio con ID: {UserId}", userId);
-        var user = await _dbContext.Users 
+        var user = await _dbContext.Users
                               .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
@@ -169,6 +169,6 @@ public class IdentityService : IIdentityService
             _logger.LogDebug("Usuario de dominio encontrado: {UserId}", userId);
         }
 
-        return user; 
+        return user.ToDomainUser();
     }
 }

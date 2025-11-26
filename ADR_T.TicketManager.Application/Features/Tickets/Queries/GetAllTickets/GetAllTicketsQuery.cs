@@ -1,6 +1,6 @@
-﻿using MediatR;
-using ADR_T.TicketManager.Application.DTOs;
+﻿using ADR_T.TicketManager.Application.DTOs;
 using ADR_T.TicketManager.Core.Domain.Enums;
+using MediatR;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Queries.GetAllTickets;
 public class GetAllTicketsQuery : IRequest<List<TicketDto>>

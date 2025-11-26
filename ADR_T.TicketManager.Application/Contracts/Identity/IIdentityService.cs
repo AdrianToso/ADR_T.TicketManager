@@ -1,6 +1,6 @@
 ﻿using ADR_T.TicketManager.Application.Common.Models;
 using ADR_T.TicketManager.Application.DTOs;
-using ADR_T.TicketManager.Core.Domain.Entities; 
+using ADR_T.TicketManager.Core.Domain.Entities;
 
 namespace ADR_T.TicketManager.Application.Contracts.Identity;
 public interface IIdentityService

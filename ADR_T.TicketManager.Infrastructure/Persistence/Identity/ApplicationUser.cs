@@ -6,20 +6,27 @@ namespace ADR_T.TicketManager.Infrastructure.Persistence.Identity
 {
     public class ApplicationUser : IdentityUser<Guid>, IApplicationUser
     {
-        public User ToDomainUser() => new(UserName, Email, PasswordHash)
+        public User ToDomainUser()
         {
-            Id = Id
-        };
-
-        public static ApplicationUser FromDomainUser(User user) => new()
-        
+            return new User
+            {
+                Id = this.Id,
+                UserName = this.UserName!,
+                Email = this.Email!,
+                PasswordHash = this.PasswordHash
+            };
+        }
+        public static ApplicationUser FromDomainUser(User user)
+        {
+            return new ApplicationUser
             {
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                PasswordHash = user.PasswordHash
+                PasswordHash = user.PasswordHash,
+                EmailConfirmed = true
             };
         }
     }
-  
+}
 

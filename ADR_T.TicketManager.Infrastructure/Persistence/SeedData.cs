@@ -14,7 +14,6 @@ public static class SeedData
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            // --- Seed Roles de Identity ---
             string[] roles = { "Admin", "Tecnico", "Usuario" };
             foreach (var roleName in roles)
             {
@@ -24,7 +23,6 @@ public static class SeedData
                 }
             }
 
-            // --- Seed Usuario Admin ---
             var adminEmail = "admin@example.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
             if (adminUser == null)
@@ -45,7 +43,8 @@ public static class SeedData
                     {
                         Id = adminUser.Id
                     };
-                    dbContext.Users.Add(domainUser);
+                    var applicationUser = ApplicationUser.FromDomainUser(domainUser);
+                    await userManager.CreateAsync(applicationUser, "Password123");
                     await dbContext.SaveChangesAsync();
                 }
             }

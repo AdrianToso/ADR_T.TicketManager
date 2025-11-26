@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ADR_T.NotificationService.Application.Consumers; 
+using ADR_T.NotificationService.Application.Consumers;
 
 namespace ADR_T.NotificationService.Application;
 public static class DependencyInjection

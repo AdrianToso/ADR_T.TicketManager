@@ -1,6 +1,6 @@
-﻿using MediatR;
-using ADR_T.TicketManager.Core.Domain.Exceptions;
+﻿using ADR_T.TicketManager.Core.Domain.Exceptions;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Commands.UpdateTicket;
@@ -17,20 +17,20 @@ public class UpdateTicketCommandHandler : IRequestHandler<UpdateTicketCommand, U
 
     public async Task<Unit> Handle(UpdateTicketCommand request, CancellationToken cancellationToken)
     {
-        var ticket = await _unitOfWork.TicketRepository.GetByIdAsync(request.Id);
+        var ticket = await _unitOfWork.Tickets.GetByIdAsync(request.Id);
         if (ticket == null)
         {
             _logger.LogWarning("Intento de actualizar ticket no existente: ID {TicketId}", request.Id);
             throw new DomainException($"El ticket con ID '{request.Id}' no existe.");
         }
-                    
+
         _logger.LogInformation("Actualizando ticket ID {TicketId}. Titulo: {Titulo}, Status: {Status}, Prioridad: {Prioridad}",
             request.Id, request.Titulo, request.Status, request.Prioridad);
 
         ticket.Update(request.Titulo, request.Descripcion, request.Status, request.Prioridad, request.CreadoByUserId);
 
         // Guardar cambios en la base de datos y disparar eventos de dominio
-        await _unitOfWork.CommitAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Ticket ID {TicketId} actualizado exitosamente.", request.Id);
 

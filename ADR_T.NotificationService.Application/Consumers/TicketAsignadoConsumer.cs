@@ -22,7 +22,7 @@ public class TicketAsignadoConsumer : IConsumer<TicketAsignadoEvent>
     {
         var evento = context.Message;
         string logMessage = $"Ticket Asignado: ID={evento.TicketId} - Titulo: {evento.Titulo} , TecnicoID={evento.AsignadoUserId}, Email= {evento.AsignadoUserMail ?? "N/A"}.";
-        _logger.LogWarning(logMessage); 
+        _logger.LogWarning(logMessage);
 
         var notification = new NotificationLog
         {

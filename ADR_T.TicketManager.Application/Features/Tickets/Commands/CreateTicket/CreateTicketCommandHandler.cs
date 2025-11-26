@@ -1,11 +1,10 @@
-﻿using MediatR;
-using Microsoft.Extensions.Logging;
-using ADR_T.TicketManager.Application.Features.Tickets.Commands.UpdateTicket;
-using ADR_T.TicketManager.Core.Domain.Entities;
+﻿using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
 using ADR_T.TicketManager.Core.Domain.Events;
 using ADR_T.TicketManager.Core.Domain.Exceptions;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Commands.CreateTicket;
 public sealed class CreateTicketCommandHandler : IRequestHandler<CreateTicketCommand, Guid>
@@ -20,7 +19,7 @@ public sealed class CreateTicketCommandHandler : IRequestHandler<CreateTicketCom
 
     public async Task<Guid> Handle(CreateTicketCommand request, CancellationToken cancellationToken)
     {
-        var user = await _unitOfWork.UserRepository.GetByIdAsync(request.CreadoByUserId);
+        var user = await _unitOfWork.Users.GetByIdAsync(request.CreadoByUserId);
         if (user == null)
             throw new DomainException($"El usuario con ID '{request.CreadoByUserId}' no existe.");
 
@@ -30,13 +29,13 @@ public sealed class CreateTicketCommandHandler : IRequestHandler<CreateTicketCom
             request.Descripcion,
             TicketStatus.Abierto,
             request.Prioridad,
-            user.Id 
+            user.Id
             );
         ticket.AddDomainEvent(new TicketCreadoEvent(ticket));
 
-        await _unitOfWork.TicketRepository.AddAsync(ticket);
+        await _unitOfWork.Tickets.AddAsync(ticket);
 
-        await _unitOfWork.CommitAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         return ticket.Id;
     }

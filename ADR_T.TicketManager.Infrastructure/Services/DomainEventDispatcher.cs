@@ -1,50 +1,52 @@
-﻿using MediatR;
-using ADR_T.TicketManager.Core.Domain.Entities;
+﻿using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
-using ADR_T.TicketManager.Infrastructure.Persistence;
-
+using Microsoft.Extensions.Logging;
 
 namespace ADR_T.TicketManager.Infrastructure.Services;
+
 public class DomainEventDispatcher : IDomainEventDispatcher
 {
-    private readonly IMediator _mediator;
-    public DomainEventDispatcher(IMediator mediator)
+    private readonly IEventBus _eventBus;
+    private readonly ILogger<DomainEventDispatcher> _logger;
+
+    public DomainEventDispatcher(IEventBus eventBus, ILogger<DomainEventDispatcher> logger)
     {
-        _mediator = mediator;
+        _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task DispatchDomainEventsAsync(AppDbContext context) 
+    public async Task DispatchDomainEventsAsync(IEnumerable<EntityBase> entitiesWithEvents)
     {
-        if (context == null) 
-            throw new ArgumentNullException(nameof(context), "Error de contexto: el contexto no puede ser nulo.");
+        if (entitiesWithEvents == null)
+            throw new ArgumentNullException(nameof(entitiesWithEvents));
 
-        var entities = context.ChangeTracker
-             .Entries<EntityBase>()
-             .Where(e => e.Entity.DomainEvents.Any())
-             .Select(e => e.Entity)
-             .ToList(); 
+        var entitiesList = entitiesWithEvents.ToList();
 
-        var domainEvents = entities
+        var domainEvents = entitiesList
             .SelectMany(e => e.DomainEvents)
             .ToList();
 
-        entities.ForEach(e => e.ClearDomainEvent());
+        _logger.LogInformation("Encontrados {EventCount} eventos de dominio en {EntityCount} entidades",
+            domainEvents.Count, entitiesList.Count);
 
+        // Limpiar eventos de cada entidad
+        foreach (var entity in entitiesList)
+        {
+            entity.ClearDomainEvent();
+        }
+
+        // Publicar cada evento a través del EventBus
         foreach (var domainEvent in domainEvents)
         {
-            await _mediator.Publish(domainEvent); 
-        }
-    }
-
-    async Task IDomainEventDispatcher.DispatchDomainEventsAsync(IDbContext dbContext)
-    {
-        if (dbContext is AppDbContext appDbContext)
-        {
-            await DispatchDomainEventsAsync(appDbContext);
-        }
-        else
-        {
-            throw new InvalidOperationException("El contexto proporcionado no es una instancia de AppDbContext.");
+            try
+            {
+                _logger.LogInformation("Publicando evento de dominio: {EventType}", domainEvent.GetType().Name);
+                await _eventBus.PublishAsync(domainEvent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al publicar el evento de dominio {EventType}", domainEvent.GetType().Name);
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ public class TicketCommentTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Constructor_ShouldThrowArgumentException_WhenComentarioIsNullOrEmpty(string invalidComentario)
+    public void Constructor_ShouldThrowArgumentException_WhenComentarioIsNullOrEmpty(string? invalidComentario)
     {
         var exception = Assert.Throws<ArgumentException>(() =>
             new TicketComment(invalidComentario, _validTicketId, _validAutorId));
