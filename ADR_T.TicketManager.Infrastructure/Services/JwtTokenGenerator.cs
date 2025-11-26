@@ -62,7 +62,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         var secret = _configuration["JwtSettings:Secret"];
         var issuer = _configuration["JwtSettings:Issuer"];
         var audience = _configuration["JwtSettings:Audience"];
-        var expiryMinutes = _configuration.GetValue<double>("JwtSettings:ExpiryMinutes", 60); 
+        var expiryMinutes = _configuration.GetValue<double>("JwtSettings:ExpiryMinutes", 60);
         if (string.IsNullOrEmpty(secret))
         {
             _logger.LogCritical("La clave secreta JWT (JwtSettings:Secret) no está configurada.");

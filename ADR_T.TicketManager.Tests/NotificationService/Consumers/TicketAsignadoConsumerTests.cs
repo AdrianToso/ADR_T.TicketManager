@@ -10,9 +10,9 @@ using ADR_T.TicketManager.Core.Domain.Events;
 using ADR_T.NotificationService.Domain.Entities;
 using System.Text.Json;
 using System.Threading;
-using ADR_T.TicketManager.Core.Domain.Entities; 
-using ADR_T.TicketManager.Core.Domain.Enums; 
-using System.Linq; 
+using ADR_T.TicketManager.Core.Domain.Entities;
+using ADR_T.TicketManager.Core.Domain.Enums;
+using System.Linq;
 
 namespace ADR_T.TicketManager.Tests.NotificationService.Consumers;
 
@@ -47,7 +47,7 @@ public class TicketAsignadoConsumerTests
     {
         // Arrange
         var ticketId = Guid.NewGuid();
-        var tecnicoId = Guid.NewGuid(); 
+        var tecnicoId = Guid.NewGuid();
         var email = "tecnico@example.com";
         var titulo = "Ticket Asignado";
 
@@ -79,7 +79,7 @@ public class TicketAsignadoConsumerTests
         Assert.Contains($"Ticket Asignado: ID={ticketId}", savedNotification.Message);
         Assert.Contains($"Titulo: {titulo}", savedNotification.Message);
         Assert.Contains($"TecnicoID={tecnicoId}", savedNotification.Message);
-        Assert.Contains($"Email= {email}", savedNotification.Message); // Esperamos el email real
+        Assert.Contains($"Email= {email}", savedNotification.Message);
 
         Assert.True(savedNotification.IsProcessed);
 
@@ -107,7 +107,7 @@ public class TicketAsignadoConsumerTests
         var ticketId = Guid.NewGuid();
         var tecnicoId = Guid.NewGuid();
         var titulo = "Ticket Asignado con Usuario Válido";
-        var email = "otro.tecnico.valido@example.com"; 
+        var email = "otro.tecnico.valido@example.com";
 
         var mockTicket = CreateMockTicket(ticketId, titulo);
         var assignedUser = CreateUser(tecnicoId, email);

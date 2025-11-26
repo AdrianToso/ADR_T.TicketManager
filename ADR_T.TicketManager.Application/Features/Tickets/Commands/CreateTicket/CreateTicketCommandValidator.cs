@@ -15,7 +15,7 @@ public class CreateTicketCommandValidator : AbstractValidator<CreateTicketComman
         RuleFor(x => x.Descripcion)
             .NotEmpty()
             .WithMessage("La Descripcion es obligatoria.");
-            
+
         RuleFor(x => x.Prioridad)
             .NotNull()
             .WithMessage("Prioridad es obligatoria.");

@@ -14,10 +14,10 @@ public class CreateTicketCommandValidatorTests
 
     // ARRANGE
     private readonly CreateTicketCommand _validCommand = new(
-        "Título Válido", 
-        "Descripción válida y obligatoria.", 
-        TicketPriority.Alta, 
-        Guid.NewGuid() 
+        "Título Válido",
+        "Descripción válida y obligatoria.",
+        TicketPriority.Alta,
+        Guid.NewGuid()
     );
 
     public CreateTicketCommandValidatorTests()

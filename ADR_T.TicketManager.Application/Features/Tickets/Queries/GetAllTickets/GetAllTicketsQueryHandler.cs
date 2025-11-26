@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ADR_T.TicketManager.Application.DTOs;
+using ADR_T.TicketManager.Core.Domain.Entities;
+using ADR_T.TicketManager.Core.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
-using ADR_T.TicketManager.Application.DTOs;
-using ADR_T.TicketManager.Core.Domain.Interfaces;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Queries.GetAllTickets;
 public class GetAllTicketsQueryHandler : IRequestHandler<GetAllTicketsQuery, List<TicketDto>>
 {
-    private readonly ITicketRepository _ticketRepository;
+    private readonly IRepository<Ticket> _ticketRepository;
     private readonly IMapper _mapper;
-    public GetAllTicketsQueryHandler(IMapper mapper, ITicketRepository ticketRepository)
+    public GetAllTicketsQueryHandler(IMapper mapper, IRepository<Ticket> ticketRepository)
     {
         _mapper = mapper;
         _ticketRepository = ticketRepository;

@@ -26,7 +26,7 @@ namespace ADR_T.TicketManager.Infrastructure.Persistence.Configurations
                 .HasForeignKey(t => t.CreadoByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
-     
+
     }
-   
+
 }

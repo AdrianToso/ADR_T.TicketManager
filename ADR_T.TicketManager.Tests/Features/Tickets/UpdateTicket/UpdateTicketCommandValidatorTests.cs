@@ -19,7 +19,7 @@ public class UpdateTicketCommandValidatorTests
         Descripcion = "Descripción válida y obligatoria.",
         Prioridad = TicketPriority.Alta,
         Status = TicketStatus.Abierto,
-        CreadoByUserId = Guid.NewGuid() 
+        CreadoByUserId = Guid.NewGuid()
     };
 
     public UpdateTicketCommandValidatorTests()
@@ -36,7 +36,7 @@ public class UpdateTicketCommandValidatorTests
         var command = new UpdateTicketCommand
         {
             Id = _validCommand.Id,
-            Titulo = string.Empty, 
+            Titulo = string.Empty,
             Descripcion = _validCommand.Descripcion,
             Prioridad = _validCommand.Prioridad,
             Status = _validCommand.Status,
@@ -57,7 +57,7 @@ public class UpdateTicketCommandValidatorTests
         var command = new UpdateTicketCommand
         {
             Id = _validCommand.Id,
-            Titulo = longTitulo, 
+            Titulo = longTitulo,
             Descripcion = _validCommand.Descripcion,
             Prioridad = _validCommand.Prioridad,
             Status = _validCommand.Status,
@@ -99,7 +99,7 @@ public class UpdateTicketCommandValidatorTests
             Id = _validCommand.Id,
             Titulo = _validCommand.Titulo,
             Descripcion = _validCommand.Descripcion,
-            Prioridad = (TicketPriority)100, 
+            Prioridad = (TicketPriority)100,
             Status = _validCommand.Status,
             CreadoByUserId = _validCommand.CreadoByUserId
         };

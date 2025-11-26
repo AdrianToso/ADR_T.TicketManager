@@ -32,7 +32,7 @@ public class TicketCreadoConsumer : IConsumer<TicketCreadoEvent>
             IsProcessed = true,
             Timestamp = DateTime.UtcNow
         };
-        
+
         await _notificationContext.SaveAsync(notification, context.CancellationToken);
         _logger.LogInformation($"NotificationLog guardado: {notification.Id} - {notification.Message}");
     }

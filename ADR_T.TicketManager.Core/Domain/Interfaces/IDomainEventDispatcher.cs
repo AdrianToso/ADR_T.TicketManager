@@ -1,5 +1,8 @@
-﻿namespace ADR_T.TicketManager.Core.Domain.Interfaces;
+﻿using ADR_T.TicketManager.Core.Domain.Entities;
+
+namespace ADR_T.TicketManager.Core.Domain.Interfaces;
+
 public interface IDomainEventDispatcher
 {
-    Task DispatchDomainEventsAsync(IDbContext context);
+    Task DispatchDomainEventsAsync(IEnumerable<EntityBase> entitiesWithEvents);
 }

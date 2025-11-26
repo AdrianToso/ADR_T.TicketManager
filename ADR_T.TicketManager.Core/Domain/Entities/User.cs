@@ -3,9 +3,9 @@
 namespace ADR_T.TicketManager.Core.Domain.Entities;
 public class User : EntityBase
 {
-    public string UserName { get; set; }
-    public string Email { get; set; }
-    public string PasswordHash { get; set; }
+    public string UserName { get; set; } = null!;
+    public string Email { get; set; } = null!;
+    public string PasswordHash { get; set; } = null!;
 
     public virtual ICollection<Ticket> TicketsCreados { get; private set; } = new List<Ticket>();
     public User() { }
@@ -13,7 +13,7 @@ public class User : EntityBase
     {
         if (string.IsNullOrWhiteSpace(userName))
             throw new DomainException("El nombre de usuario no puede estar vacío.");
-        if (string.IsNullOrWhiteSpace(email)) 
+        if (string.IsNullOrWhiteSpace(email))
             throw new DomainException("El email no puede estar vacío.");
 
         UserName = userName;

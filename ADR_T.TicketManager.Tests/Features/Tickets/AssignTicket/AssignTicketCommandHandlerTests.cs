@@ -1,6 +1,4 @@
-﻿using Xunit;
-using Moq;
-using MediatR;
+﻿using Moq;
 using Microsoft.Extensions.Logging;
 using ADR_T.TicketManager.Application.Features.Tickets.Commands.AssignTicket;
 using ADR_T.TicketManager.Core.Domain.Entities;
@@ -25,9 +23,9 @@ public class AssignTicketCommandHandlerTests
         _ticketRepositoryMock = new Mock<ITicketRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<AssignTicketCommandHandler>>();
-        _unitOfWorkMock.Setup(uow => uow.TicketRepository).Returns(_ticketRepositoryMock.Object);
-        _unitOfWorkMock.Setup(uow => uow.UserRepository).Returns(_userRepositoryMock.Object);
 
+        _unitOfWorkMock.Setup(uow => uow.Tickets).Returns(_ticketRepositoryMock.Object);
+        _unitOfWorkMock.Setup(uow => uow.Users).Returns(_userRepositoryMock.Object);
 
         _handler = new AssignTicketCommandHandler(
             _unitOfWorkMock.Object,
@@ -57,15 +55,19 @@ public class AssignTicketCommandHandlerTests
         var ticket = CreateMockTicket(ticketId);
         var tecnico = CreateMockUser(tecnicoId);
 
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId)).ReturnsAsync(ticket);
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId)).ReturnsAsync(tecnico);
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId, It.IsAny<CancellationToken>())).ReturnsAsync(tecnico);
+
+        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(1);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.Equal(tecnicoId, ticket.AsignadoUserId);
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Once);
+
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -77,14 +79,15 @@ public class AssignTicketCommandHandlerTests
         var asignadorUserId = Guid.NewGuid();
         var command = new AssignTicketCommand(ticketId, tecnicoId, asignadorUserId);
 
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId)).ReturnsAsync((Ticket)null);
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId, It.IsAny<CancellationToken>())).ReturnsAsync((Ticket)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
             _handler.Handle(command, CancellationToken.None));
 
         Assert.Contains($"El ticket con ID '{ticketId}' no existe.", exception.Message);
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Never);
+
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -98,15 +101,16 @@ public class AssignTicketCommandHandlerTests
 
         var ticket = CreateMockTicket(ticketId);
 
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId)).ReturnsAsync(ticket);
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId)).ReturnsAsync((User)null);
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId, It.IsAny<CancellationToken>())).ReturnsAsync((User)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
             _handler.Handle(command, CancellationToken.None));
 
         Assert.Contains($"El técnico con ID '{tecnicoId}' no existe.", exception.Message);
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Never);
+
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -121,11 +125,12 @@ public class AssignTicketCommandHandlerTests
         var ticket = CreateMockTicket(ticketId);
         var tecnico = CreateMockUser(tecnicoId);
 
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId)).ReturnsAsync(ticket);
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId)).ReturnsAsync(tecnico);
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId, It.IsAny<CancellationToken>())).ReturnsAsync(tecnico);
 
         var simulatedDbException = new DbUpdateException("Simulated DB error on commit", (Exception)null);
-        _unitOfWorkMock.Setup(uow => uow.CommitAsync(CancellationToken.None))
+
+        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
                        .ThrowsAsync(new PersistenceException("Ocurrió un error de persistencia al guardar los cambios.", simulatedDbException));
 
 
@@ -137,11 +142,11 @@ public class AssignTicketCommandHandlerTests
         Assert.Equal("Simulated DB error on commit", exception.InnerException.Message);
 
 
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowInvalidOperationException_WhenUnexpectedErrorOccurs() 
+    public async Task Handle_ShouldThrowInvalidOperationException_WhenUnexpectedErrorOccurs()
     {
         // Arrange
         var ticketId = Guid.NewGuid();
@@ -152,23 +157,20 @@ public class AssignTicketCommandHandlerTests
         var ticket = CreateMockTicket(ticketId);
         var tecnico = CreateMockUser(tecnicoId);
 
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId)).ReturnsAsync(ticket);
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId)).ReturnsAsync(tecnico);
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(ticketId, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
         var unexpectedError = new InvalidOperationException("Simulated unexpected internal operation error.");
 
-        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId))
+        _userRepositoryMock.Setup(repo => repo.GetByIdAsync(tecnicoId, It.IsAny<CancellationToken>()))
                            .ThrowsAsync(unexpectedError);
 
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => 
-        {
-            await _handler.Handle(command, CancellationToken.None);
-        });
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(command, CancellationToken.None));
 
         Assert.Equal("Simulated unexpected internal operation error.", exception.Message);
 
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

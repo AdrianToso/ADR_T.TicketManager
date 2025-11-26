@@ -12,7 +12,8 @@ using ADR_T.TicketManager.Infrastructure.Identity;
 using ADR_T.TicketManager.Application.Contracts.Identity;
 using MassTransit;
 using ADR_T.TicketManager.Core.Domain.Events;
-using System; 
+using System;
+using ADR_T.TicketManager.Core.Domain.Entities;
 namespace ADR_T.TicketManager.Infrastructure;
 
 public static class DependencyInjection
@@ -20,7 +21,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration["CONNECTION_STRING_TICKET"]
-                               ?? configuration.GetConnectionString("DefaultConnection"); 
+                               ?? configuration.GetConnectionString("DefaultConnection");
 
 
         services.AddDbContext<AppDbContext>(options =>
@@ -34,8 +35,6 @@ public static class DependencyInjection
                         errorNumbersToAdd: null);
                 }));
 
-        services.AddScoped<IDbContext>(provider => provider.GetRequiredService<AppDbContext>());
-
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
         {
             // Configuraciones de Identity
@@ -48,12 +47,15 @@ public static class DependencyInjection
         })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
-
-        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-        services.AddScoped<ITicketRepository, TicketRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+        services.AddScoped<ITicketRepository, TicketRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+
+
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         // Para ICurrentUserService, necesita IHttpContextAccessor
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

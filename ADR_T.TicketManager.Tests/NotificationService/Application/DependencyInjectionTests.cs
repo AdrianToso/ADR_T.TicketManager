@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using ADR_T.NotificationService.Application; 
+using ADR_T.NotificationService.Application;
 namespace ADR_T.TicketManager.Tests.NotificationService.Application;
 
 public class DependencyInjectionTests

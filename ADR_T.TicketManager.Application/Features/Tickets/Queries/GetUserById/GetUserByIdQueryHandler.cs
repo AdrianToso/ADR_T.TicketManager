@@ -1,8 +1,8 @@
-﻿using AutoMapper;
+﻿using ADR_T.TicketManager.Application.Contracts.Identity;
+using ADR_T.TicketManager.Application.DTOs;
+using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using ADR_T.TicketManager.Application.Contracts.Identity;
-using ADR_T.TicketManager.Application.DTOs;
 
 namespace ADR_T.TicketManager.Application.Features.Users.Queries.GetUserById
 {
@@ -28,7 +28,7 @@ namespace ADR_T.TicketManager.Application.Features.Users.Queries.GetUserById
             if (user == null)
             {
                 _logger.LogWarning("Usuario con ID {UserId} no encontrado.", request.UserId);
-                return null; 
+                return null;
             }
 
             var userDto = _mapper.Map<UserDto>(user);

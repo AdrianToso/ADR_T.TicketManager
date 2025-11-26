@@ -1,7 +1,7 @@
-﻿using AutoMapper;
-using MediatR;
-using ADR_T.TicketManager.Application.DTOs;
+﻿using ADR_T.TicketManager.Application.DTOs;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
+using AutoMapper;
+using MediatR;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Queries.GetAllTicketsPaged;
 public class GetAllTicketsPagedQueryHandler : IRequestHandler<GetAllTicketsPagedQuery, PagedResponse<List<TicketDto>>>

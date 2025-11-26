@@ -9,9 +9,9 @@ public sealed class LoginUserCommandValidator : AbstractValidator<LoginUserComma
             .NotEmpty()
             .WithMessage("Email es requerido.")
             .EmailAddress().WithMessage("Formato de mail invalido");
-        
+
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password es requerido.");
-          
+
     }
 }

@@ -1,12 +1,7 @@
-﻿using AutoMapper; 
+﻿using ADR_T.TicketManager.Application.Contracts.Identity;
+using ADR_T.TicketManager.Application.DTOs;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using ADR_T.TicketManager.Application.Contracts.Identity;
-using ADR_T.TicketManager.Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Queries.GetAllTecnicos;
 public class GetAllTecnicosQueryhandler : IRequestHandler<GetAllTecnicosQuery, List<UserDto>>
@@ -15,7 +10,7 @@ public class GetAllTecnicosQueryhandler : IRequestHandler<GetAllTecnicosQuery, L
     private readonly ILogger<GetAllTecnicosQueryhandler> _logger;
 
     public GetAllTecnicosQueryhandler(
-        IIdentityService identityService, 
+        IIdentityService identityService,
         ILogger<GetAllTecnicosQueryhandler> logger)
     {
         _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService));

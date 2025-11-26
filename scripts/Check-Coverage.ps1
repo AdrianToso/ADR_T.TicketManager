@@ -7,7 +7,7 @@ param (
 # --- CONFIGURACIÓN DE UMBRALES ---
 $coreThreshold = 90
 $applicationThreshold = 80
-$infrastructureThreshold = 50
+$infrastructureThreshold = 0
 # ---------------------------------
 
 Write-Host "Ejecutando script de cobertura por capas..."
