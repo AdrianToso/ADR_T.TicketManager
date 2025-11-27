@@ -36,7 +36,7 @@ public sealed class TestingFixture : IAsyncLifetime
         });
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(_db.ConnectionString)); // Sin EnableRetryOnFailure
+            options.UseSqlServer(_db.ConnectionString));
 
         services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole<Guid>>()
@@ -50,7 +50,7 @@ public sealed class TestingFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["CONNECTION_STRING_TICKET"] = _db.ConnectionString,
+                ["ConnectionStrings:DefaultConnection"] = _db.ConnectionString,
                 ["RabbitMQ:Host"] = "localhost",
                 ["RabbitMQ:Port"] = _rabbit.Port.ToString(),
                 ["RabbitMQ:Username"] = "guest",
@@ -61,7 +61,6 @@ public sealed class TestingFixture : IAsyncLifetime
 
         services.AddInfrastructure(configuration);
 
-        // Anular MassTransit para pruebas
         services.RemoveAll<IBus>();
         services.RemoveAll<IBusControl>();
         services.AddMassTransit(x =>
@@ -82,7 +81,6 @@ public sealed class TestingFixture : IAsyncLifetime
 
         _provider = services.BuildServiceProvider();
 
-        // Crear contexto 
         var scope = _provider.CreateScope();
         Context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
