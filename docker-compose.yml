@@ -67,6 +67,9 @@ services:
       - SEEDDATA__DEFAULTPASSWORD=${SEEDDATA_DEFAULTPASSWORD}
       - SEEDDATA__ADMINPASSWORD=${SEEDDATA_ADMINPASSWORD}
       
+      # Configuración CORS para Angular en Docker
+      - CorsSettings__AdditionalOrigins__0=http://host.docker.internal:4200
+      
       # Entorno ASP.NET
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80

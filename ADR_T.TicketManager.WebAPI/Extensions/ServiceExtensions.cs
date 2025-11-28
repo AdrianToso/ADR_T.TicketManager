@@ -74,6 +74,15 @@ public static class ServiceExtensions
     {
         var allowedOrigin = configuration["CorsSettings:AngularClientOrigin"] ?? "http://localhost:4200";
 
+        // PARA SOPORTAR DOCKER
+        var additionalOrigins = configuration.GetSection("CorsSettings:AdditionalOrigins").Get<string[]>();
+        var allOrigins = new List<string> { allowedOrigin };
+
+        if (additionalOrigins != null)
+        {
+            allOrigins.AddRange(additionalOrigins);
+        }
+
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", policy =>
@@ -85,7 +94,7 @@ public static class ServiceExtensions
 
             options.AddPolicy("AllowAngular", builder =>
             {
-                builder.WithOrigins(allowedOrigin)
+                builder.WithOrigins(allOrigins.ToArray())
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials();
