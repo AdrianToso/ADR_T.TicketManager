@@ -3,8 +3,6 @@ using ADR_T.NotificationService.Infrastructure.Persistence;
 using ADR_T.NotificationService.Application;
 using ADR_T.NotificationService.Infrastructure;
 using Serilog;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
 
 // Configuración de logs con Serilog
 Log.Logger = new LoggerConfiguration()
@@ -47,7 +45,7 @@ try
 
     app.MapGet("/", () => $"ADR_T Notification Service ({app.Environment.EnvironmentName}) Anda!");
 
-    await ApplyMigrationsAsync(app, (Microsoft.Extensions.Logging.ILogger)logger);
+    await ApplyMigrationsAsync(app, (Microsoft.Extensions.Logging.ILogger)logger);
 
     logger.LogInformation("Iniciando la aplicación de Notificaciones...");
     app.Run();
@@ -63,18 +61,18 @@ finally
 
 static async Task ApplyMigrationsAsync(WebApplication app, Microsoft.Extensions.Logging.ILogger logger)
 {
-    using (var scope = app.Services.CreateScope())
+    using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
         try
         {
             logger.LogInformation("Aplicando migraciones de NotificationDbContext...");
-            await dbContext.Database.MigrateAsync();
+            await dbContext.Database.MigrateAsync();
             logger.LogInformation("Migraciones aplicadas exitosamente para NotificationDbContext.");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "ERROR CRÍTICO: Error aplicando migraciones para NotificationDbContext.");
+            logger.LogError(ex, "ERROR CRÍTICO: Error aplicando migraciones para NotificationDbContext.");
         }
     }
 }

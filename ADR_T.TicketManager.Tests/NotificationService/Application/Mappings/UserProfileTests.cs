@@ -15,11 +15,11 @@ public class UserProfileTests
         // ARRANGE
         var configuration = new MapperConfiguration(cfg =>
         {
-            
+
             cfg.AddProfile<UserProfile>();
         });
 
-        configuration.AssertConfigurationIsValid(); 
+        configuration.AssertConfigurationIsValid();
 
         _mapper = configuration.CreateMapper();
     }

@@ -47,8 +47,8 @@ public class LoginUserCommandHandlerTests
         _identityServiceMock.Setup(s => s.CheckPasswordAsync(userId, command.Password))
                             .ReturnsAsync(true);
         _identityServiceMock.Setup(s => s.GetUserByIdAsync(userId))
-                            .ReturnsAsync(domainUser); // Devuelve usuario de dominio
-        _jwtTokenGeneratorMock.Setup(g => g.GenerateTokenAsync(domainUser)) // Espera usuario de dominio
+                            .ReturnsAsync(domainUser);
+        _jwtTokenGeneratorMock.Setup(g => g.GenerateTokenAsync(domainUser))
                               .ReturnsAsync(expectedToken);
 
         // Act
@@ -61,7 +61,7 @@ public class LoginUserCommandHandlerTests
         _identityServiceMock.Verify(s => s.FindUserByEmailAsync(command.Email), Times.Once);
         _identityServiceMock.Verify(s => s.CheckPasswordAsync(userId, command.Password), Times.Once);
         _identityServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
-        _jwtTokenGeneratorMock.Verify(g => g.GenerateTokenAsync(It.Is<User>(u => u.Id == userId)), Times.Once); // Verifica que el usuario de dominio correcto fue pasado
+        _jwtTokenGeneratorMock.Verify(g => g.GenerateTokenAsync(It.Is<User>(u => u.Id == userId)), Times.Once);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class LoginUserCommandHandlerTests
     {
         // Arrange
         var command = new LoginUserCommand("unknown@example.com", "password123");
-        var userDetailsResult = new UserDetailsResult(false); // Succeeded = false
+        var userDetailsResult = new UserDetailsResult(false);
 
         _identityServiceMock.Setup(s => s.FindUserByEmailAsync(command.Email))
                             .ReturnsAsync(userDetailsResult);
@@ -95,7 +95,7 @@ public class LoginUserCommandHandlerTests
         _identityServiceMock.Setup(s => s.FindUserByEmailAsync(command.Email))
                             .ReturnsAsync(userDetailsResult);
         _identityServiceMock.Setup(s => s.CheckPasswordAsync(userId, command.Password))
-                            .ReturnsAsync(false); // Password check fails
+                            .ReturnsAsync(false);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
@@ -120,10 +120,10 @@ public class LoginUserCommandHandlerTests
         _identityServiceMock.Setup(s => s.CheckPasswordAsync(userId, command.Password))
                             .ReturnsAsync(true);
         _identityServiceMock.Setup(s => s.GetUserByIdAsync(userId))
-                            .ReturnsAsync((User?)null); // Devuelve null para usuario de dominio
+                            .ReturnsAsync((User?)null);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => // Espera Exception genérica
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
             _handler.Handle(command, CancellationToken.None));
 
         Assert.Equal("Error interno al procesar el login.", exception.Message);

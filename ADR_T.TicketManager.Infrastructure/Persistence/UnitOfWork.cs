@@ -1,113 +1,61 @@
-﻿using ADR_T.TicketManager.Infrastructure.Repositories;
+﻿using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
-using MediatR;
 using Microsoft.Extensions.Logging;
-using ADR_T.TicketManager.Core.Domain.Entities;
-using ADR_T.TicketManager.Core.Domain.Events;
-using Microsoft.EntityFrameworkCore;
-using ADR_T.TicketManager.Core.Domain.Exceptions;
 
-namespace ADR_T.TicketManager.Infrastructure.Persistence;
-public class UnitOfWork : IUnitOfWork
+namespace ADR_T.TicketManager.Infrastructure;
+
+public class UnitOfWork : IUnitOfWork, IDisposable
 {
     private readonly AppDbContext _context;
-    private readonly IMediator _mediator;
-    private readonly IEventBus _eventBus;
+    private readonly IDomainEventDispatcher _domainEventDispatcher;
+    private readonly IUserRepository _users;
+    private readonly ITicketRepository _tickets;
     private readonly ILogger<UnitOfWork> _logger;
-    public ITicketRepository TicketRepository { get; }
-    public IUserRepository UserRepository { get; }
-    public UnitOfWork(AppDbContext context, IMediator mediator, ILogger<UnitOfWork> logger, IEventBus eventBus)
+
+    public UnitOfWork(
+        AppDbContext context,
+        IDomainEventDispatcher domainEventDispatcher,
+        IUserRepository users,
+        ITicketRepository tickets,
+        ILogger<UnitOfWork> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+        _domainEventDispatcher = domainEventDispatcher ?? throw new ArgumentNullException(nameof(domainEventDispatcher));
+        _users = users ?? throw new ArgumentNullException(nameof(users));
+        _tickets = tickets ?? throw new ArgumentNullException(nameof(tickets));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
+    }
 
-        TicketRepository = new TicketRepository(_context);
-        UserRepository = new UserRepository(_context);
-        TicketRepository = new TicketRepository(_context);
-        UserRepository = new UserRepository(_context);
-    }
-    public void Dispose()
-    {
-        _context.Dispose();
-        GC.SuppressFinalize(this);
-    }
-    public async Task<int> CommitAsync(CancellationToken cancellationToken = default)
+    public IUserRepository Users => _users;
+    public ITicketRepository Tickets => _tickets;
+
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
+            // get entidades con eventos antes de guardar
+            var entitiesWithEvents = _context.GetEntitiesWithEvents().ToList();
+            // Guardar cambios en la base de datos primero
             var result = await _context.SaveChangesAsync(cancellationToken);
-
-            if (result > 0)
+            // Despachar eventos después del guardado exitoso
+            if (entitiesWithEvents.Any())
             {
-                _logger.LogInformation("Cambios guardados en la base de datos ({Result} entidades afectadas). Despachando eventos...", result);
-                await DispatchEventsToBusAsync(cancellationToken);
-            }
-            else
-            {
-                _logger.LogInformation("No se detectaron cambios en la base de datos. No se despacharán eventos.");
+                _logger.LogInformation("Despachando {Count} eventos de dominio", entitiesWithEvents.Count);
+                await _domainEventDispatcher.DispatchDomainEventsAsync(entitiesWithEvents);
             }
 
             return result;
         }
-        catch (DbUpdateException dbex)
+        catch (Exception ex)
         {
-            _logger.LogError(dbex, "Error de base de datos durante CommitAsync.");
-            throw new PersistenceException("Ocurrió un error de persistencia al guardar los cambios.", dbex);
-        }
-      
-    }
-    private async Task DispatchEventsToBusAsync(CancellationToken cancellationToken)
-    {
-        var entitiesWithEvents = _context.ChangeTracker
-            .Entries<EntityBase>()
-            .Select(e => e.Entity)
-            .Where(e => e.DomainEvents.Any())
-            .ToList();
-
-        if (!entitiesWithEvents.Any())
-        {
-            _logger.LogInformation("No se encontraron eventos de dominio para despachar.");
-            return;
-        }
-        var domainEvents = entitiesWithEvents
-            .SelectMany(e => e.DomainEvents)
-            .ToList();
-
-        entitiesWithEvents.ForEach(e => e.ClearDomainEvent());
-
-        _logger.LogInformation("Publicando {DomainEventCount} eventos de dominio para publicar en el bus...", domainEvents.Count);
-
-        foreach (var domainEvent in domainEvents)
-        {
-            try
-            {
-                _logger.LogDebug("Intentando publicar evento: {EventType} - ID: {EventId}",
-                                 domainEvent.GetType().FullName,
-                                 GetEventId(domainEvent));
-
-                await _eventBus.PublishAsync(domainEvent, cancellationToken);
-
-                _logger.LogInformation("Evento {EventType} - ID: {EventId} publicado exitosamente.",
-                                    domainEvent.GetType().FullName,
-                                    GetEventId(domainEvent));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al publicar el evento {EventType} - ID: {EventId} al bus. Evento: {@DomainEvent}",
-                                 domainEvent.GetType().FullName,
-                                 GetEventId(domainEvent),
-                                 domainEvent);
-            }
+            _logger.LogError(ex, "Error en UnitOfWork al guardar cambios");
+            throw;
         }
     }
-    // helper para obtener un ID identificable del evento
-    private string GetEventId(IDomainEvent domainEvent)
+
+    public void Dispose()
     {
-        if (domainEvent is TicketAsignadoEvent tae) return $"TicketId:{tae.TicketId}";
-        if (domainEvent is TicketActualizadoEvent tue) return $"TicketId:{tue.TicketId}";
-        if (domainEvent is TicketCreadoEvent tce) return $"TicketId:{tce.TicketId}";
-        return "N/A";
+        _context.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

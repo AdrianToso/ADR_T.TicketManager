@@ -1,7 +1,10 @@
-﻿namespace ADR_T.TicketManager.Core.Domain.Interfaces;
+﻿using ADR_T.TicketManager.Core.Domain.Entities;
+
+namespace ADR_T.TicketManager.Core.Domain.Interfaces;
 public interface IUnitOfWork : IDisposable
 {
-    ITicketRepository TicketRepository { get; }
-    IUserRepository UserRepository { get; }  
-    Task<int> CommitAsync(CancellationToken cancellationToken = default);
+    IUserRepository Users { get; }
+    ITicketRepository Tickets { get; }
+
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

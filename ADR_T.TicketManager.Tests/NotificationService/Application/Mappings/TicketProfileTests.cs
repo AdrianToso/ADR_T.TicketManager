@@ -19,7 +19,7 @@ public class TicketProfileTests
         {
             cfg.AddProfile<TicketProfile>();
             cfg.CreateMap<string, TicketStatus>().ConvertUsing(s => (TicketStatus)Enum.Parse(typeof(TicketStatus), s));
-           cfg.CreateMap<string, TicketPriority>().ConvertUsing(s => (TicketPriority)Enum.Parse(typeof(TicketPriority), s));
+            cfg.CreateMap<string, TicketPriority>().ConvertUsing(s => (TicketPriority)Enum.Parse(typeof(TicketPriority), s));
         });
 
         _mapper = configuration.CreateMapper();

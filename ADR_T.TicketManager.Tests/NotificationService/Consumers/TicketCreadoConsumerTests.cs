@@ -10,7 +10,7 @@ using ADR_T.TicketManager.Core.Domain.Events;
 using ADR_T.NotificationService.Domain.Entities;
 using System.Text.Json;
 using System.Threading;
-using ADR_T.TicketManager.Core.Domain.Entities; 
+using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
 
 namespace ADR_T.TicketManager.Tests.NotificationService.Consumers;

@@ -5,21 +5,23 @@
       <DataCollector friendlyName="XPlat code coverage">
         <Configuration>
           <Format>cobertura</Format>
-          
+          <Include>
+            [ADR_T.TicketManager.Core]*,
+            [ADR_T.TicketManager.Application]*,
+            [ADR_T.TicketManager.Infrastructure]*
+          </Include>
           <Exclude>
             [*.WebAPI]*,
             [*.API]*,
-            [*.Tests]*
+            [*.Tests]*,
+            [*.IntegrationTests]*
           </Exclude>
-          
           <ExcludeByAttribute>Obfuscation, GeneratedCodeAttribute, CompilerGeneratedAttribute</ExcludeByAttribute>
-          
           <ExcludeByFile>
             **/ADR_T.TicketManager.Application/DTOs/**/*.cs,
             **/ADR_T.TicketManager.Core/Domain/Exceptions/**/*.cs,
             **/ADR_T.TicketManager.Infrastructure/Migrations/**/*.cs
           </ExcludeByFile>
-          
         </Configuration>
       </DataCollector>
     </DataCollectors>

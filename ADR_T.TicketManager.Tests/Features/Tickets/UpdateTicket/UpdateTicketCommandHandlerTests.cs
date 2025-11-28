@@ -8,20 +8,21 @@ using Microsoft.Extensions.Logging;
 using ADR_T.TicketManager.Core.Domain.Exceptions;
 
 namespace ADR_T.TicketManager.Tests.Features.Tickets.Commands.UpdateTicket;
+
 public class UpdateTicketCommandHandlerUnitTests
 {
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly Mock<ITicketRepository> _ticketRepositoryMock; 
-    private readonly Mock<ILogger<UpdateTicketCommandHandler>> _loggerMock; 
+    private readonly Mock<ITicketRepository> _ticketRepositoryMock;
+    private readonly Mock<ILogger<UpdateTicketCommandHandler>> _loggerMock;
     private readonly UpdateTicketCommandHandler _handler;
 
     public UpdateTicketCommandHandlerUnitTests()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _ticketRepositoryMock = new Mock<ITicketRepository>();
-        _loggerMock = new Mock<ILogger<UpdateTicketCommandHandler>>(); 
+        _loggerMock = new Mock<ILogger<UpdateTicketCommandHandler>>();
 
-        _unitOfWorkMock.Setup(uow => uow.TicketRepository).Returns(_ticketRepositoryMock.Object);
+        _unitOfWorkMock.Setup(uow => uow.Tickets).Returns(_ticketRepositoryMock.Object);
 
         _handler = new UpdateTicketCommandHandler(_unitOfWorkMock.Object, _loggerMock.Object);
     }
@@ -31,7 +32,7 @@ public class UpdateTicketCommandHandlerUnitTests
     {
         // Arrange
         var ticketId = Guid.NewGuid();
-        var creatorUserId = Guid.NewGuid(); 
+        var creatorUserId = Guid.NewGuid();
         var command = new UpdateTicketCommand
         {
             Id = ticketId,
@@ -39,24 +40,30 @@ public class UpdateTicketCommandHandlerUnitTests
             Descripcion = "Nueva Descripcion",
             Status = TicketStatus.EnProgreso,
             Prioridad = TicketPriority.Media,
-            CreadoByUserId = creatorUserId 
+            CreadoByUserId = creatorUserId
         };
 
         var existingTicket = new Ticket(ticketId, "Titulo Viejo", "Desc Vieja", TicketStatus.Abierto, TicketPriority.Alta, creatorUserId);
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(command.Id))
+
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
                              .ReturnsAsync(existingTicket);
 
-        _unitOfWorkMock.Setup(uow => uow.CommitAsync(CancellationToken.None))
+        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
                        .ReturnsAsync(1);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _ticketRepositoryMock.Verify(repo => repo.GetByIdAsync(command.Id), Times.Once);
+        _ticketRepositoryMock.Verify(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()), Times.Once);
 
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Once);
+        // Assert
+        Assert.Equal(command.Titulo, existingTicket.Titulo);
+        Assert.Equal(command.Descripcion, existingTicket.Descripcion);
+        Assert.Equal(command.Status, existingTicket.Status);
+        Assert.Equal(command.Prioridad, existingTicket.Priority);
 
         Assert.Equal(Unit.Value, result);
 
@@ -73,8 +80,8 @@ public class UpdateTicketCommandHandlerUnitTests
             Titulo = "Nuevo Titulo",
         };
 
-        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(command.Id))
-                             .ReturnsAsync((Ticket?)null); // Devuelve null
+        _ticketRepositoryMock.Setup(repo => repo.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+                             .ReturnsAsync((Ticket?)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
@@ -82,6 +89,6 @@ public class UpdateTicketCommandHandlerUnitTests
 
         Assert.Equal($"El ticket con ID '{ticketId}' no existe.", exception.Message);
 
-        _unitOfWorkMock.Verify(uow => uow.CommitAsync(CancellationToken.None), Times.Never);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

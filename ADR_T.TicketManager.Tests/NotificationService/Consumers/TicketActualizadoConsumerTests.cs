@@ -11,7 +11,7 @@ using ADR_T.NotificationService.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
 using System.Text.Json;
 using System.Threading;
-using ADR_T.TicketManager.Core.Domain.Entities; 
+using ADR_T.TicketManager.Core.Domain.Entities;
 
 namespace ADR_T.TicketManager.Tests.NotificationService.Consumers;
 
@@ -39,14 +39,14 @@ public class TicketActualizadoConsumerTests
         var statusNuevo = TicketStatus.EnProgreso;
         var prioridadNueva = TicketPriority.Media;
 
-    
+
         var mockTicket = new Ticket(ticketId, "Ticket Actualizado", "Desc", statusNuevo, prioridadNueva, Guid.NewGuid());
-        
+
         var ticketEvent = new TicketActualizadoEvent(
             mockTicket,
             statusAnterior,
             prioridadAnterior,
-            userId 
+            userId
             );
 
         var consumeContextMock = new Mock<ConsumeContext<TicketActualizadoEvent>>();

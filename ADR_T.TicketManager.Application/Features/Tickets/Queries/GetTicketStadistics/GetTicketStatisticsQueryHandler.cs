@@ -1,23 +1,19 @@
-﻿using MediatR;
-using Microsoft.Extensions.Logging;
-using ADR_T.TicketManager.Application.DTOs;
+﻿using ADR_T.TicketManager.Application.DTOs;
+using ADR_T.TicketManager.Core.Domain.Entities;
 using ADR_T.TicketManager.Core.Domain.Enums;
 using ADR_T.TicketManager.Core.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace ADR_T.TicketManager.Application.Features.Tickets.Queries.GetTicketStatistics;
 
 public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisticsQuery, TicketStatisticsDto>
 {
-    private readonly ITicketRepository _ticketRepository;
+    private readonly IRepository<Ticket> _ticketRepository;
     private readonly ILogger<GetTicketStatisticsQueryHandler> _logger;
     private readonly IUserRepository _userRepository;
 
-    public GetTicketStatisticsQueryHandler(ITicketRepository ticketRepository,
+    public GetTicketStatisticsQueryHandler(IRepository<Ticket> ticketRepository,
                                             ILogger<GetTicketStatisticsQueryHandler> logger,
                                             IUserRepository userRepository)
     {
@@ -33,7 +29,7 @@ public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisti
         IReadOnlyList<Core.Domain.Entities.Ticket> allTickets;
         try
         {
-            allTickets = await _ticketRepository.ListAllAsync();
+            allTickets = await _ticketRepository.ListAllAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -41,7 +37,7 @@ public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisti
             throw new Exception("Ocurrió un error al obtener los datos para las estadísticas.", ex);
         }
 
-        if (allTickets == null)
+        if (allTickets == null || !allTickets.Any())
         {
             _logger.LogWarning("No se pudieron obtener tickets para calcular estadísticas.");
             return new TicketStatisticsDto();
@@ -53,18 +49,18 @@ public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisti
                 .Distinct()
                 .ToList();
 
-        IReadOnlyList<Core.Domain.Entities.User> tecnicos = new List<Core.Domain.Entities.User>();
+        IReadOnlyList<User> tecnicos = new List<Core.Domain.Entities.User>();
         if (asignadosIds.Any())
         {
-            tecnicos = await _userRepository.GetByIdsAsync(asignadosIds);
+            tecnicos = await _userRepository.GetByIdsAsync(asignadosIds, cancellationToken);
         }
 
         var tecnicosDict = tecnicos.ToDictionary(u => u.Id, u => u.UserName);
 
         // Calcular Tickets Por Prioridad - Inicializar con todos los enums y luego contar
         var ticketsPorPrioridad = Enum.GetValues(typeof(TicketPriority))
-                                      .Cast<TicketPriority>()
-                                      .ToDictionary(p => p.ToString(), p => 0);
+                                          .Cast<TicketPriority>()
+                                          .ToDictionary(p => p.ToString(), p => 0);
 
         foreach (var ticket in allTickets)
         {
@@ -76,8 +72,8 @@ public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisti
 
         // Calcular Tickets Por Estado - Inicializar con todos los enums y luego contar
         var ticketsPorEstado = Enum.GetValues(typeof(TicketStatus))
-                                   .Cast<TicketStatus>()
-                                   .ToDictionary(s => s.ToString(), s => 0);
+                                       .Cast<TicketStatus>()
+                                       .ToDictionary(s => s.ToString(), s => 0);
 
         foreach (var ticket in allTickets)
         {
@@ -87,7 +83,7 @@ public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisti
             }
         }
 
-        // Calcular tiempos de resolución (esta lógica ya estaba bien)
+        // Calcular tiempos de resolución
         var tiemposResolucion = new Dictionary<string, int>();
         var ticketsResueltos = allTickets
             .Where(t => t.Status == TicketStatus.Resuelto || t.Status == TicketStatus.Cerrado);
@@ -125,12 +121,12 @@ public class GetTicketStatisticsQueryHandler : IRequestHandler<GetTicketStatisti
             TicketsPorEstado = ticketsPorEstado,
 
             TicketsPorTecnico = allTickets
-                                    .Where(t => t.AsignadoUserId.HasValue)
-                                    .GroupBy(t => t.AsignadoUserId.Value)
-                                    .ToDictionary(
-                                        g => tecnicosDict.TryGetValue(g.Key, out var nombre) ? nombre : "Desconocido",
-                                        g => g.Count()
-                                    ),
+                                        .Where(t => t.AsignadoUserId.HasValue)
+                                        .GroupBy(t => t.AsignadoUserId.Value)
+                                        .ToDictionary(
+                                            g => tecnicosDict.TryGetValue(g.Key, out var nombre) ? nombre : "Desconocido",
+                                            g => g.Count()
+                                        ),
 
             TiemposDeResolucion = tiemposResolucion
         };

@@ -1,9 +1,9 @@
-﻿using MediatR;
+﻿using ADR_T.TicketManager.Application.Contracts.Identity;
 using ADR_T.TicketManager.Core.Domain.Entities;
-using ADR_T.TicketManager.Core.Domain.Interfaces;
 using ADR_T.TicketManager.Core.Domain.Enums;
 using ADR_T.TicketManager.Core.Domain.Exceptions;
-using ADR_T.TicketManager.Application.Contracts.Identity;
+using ADR_T.TicketManager.Core.Domain.Interfaces;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace ADR_T.TicketManager.Application.Features.Auth.Commands.RegisterUser;
@@ -14,7 +14,7 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
     private readonly ILogger<RegisterUserCommandHandler> _logger;
 
     public RegisterUserCommandHandler(
-        IIdentityService identityService, 
+        IIdentityService identityService,
         IUnitOfWork unitOfWork,
         ILogger<RegisterUserCommandHandler> logger)
     {
@@ -41,15 +41,15 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
 
         _logger.LogInformation("Usuario Identity creado exitosamente para {Email} con ID {UserId}", request.Email, registrationResult.UserId);
 
-        var domainUser = new User(request.Email, request.Email, string.Empty) 
+        var domainUser = new User(request.Email, request.Email, string.Empty)
         {
-            Id = registrationResult.UserId 
+            Id = registrationResult.UserId
         };
 
 
-        await _unitOfWork.UserRepository.AddAsync(domainUser);
+        await _unitOfWork.Users.AddAsync(domainUser);
 
-        await _unitOfWork.CommitAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Usuario de dominio creado y rol asignado para {UserId}", domainUser.Id);
 

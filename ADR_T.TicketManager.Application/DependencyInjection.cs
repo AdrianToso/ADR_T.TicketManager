@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
-using ADR_T.TicketManager.Application.Mappings;
+﻿using ADR_T.TicketManager.Application.Mappings;
 using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace ADR_T.TicketManager.Application;
 public static class DependencyInjection
@@ -13,7 +13,7 @@ public static class DependencyInjection
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-        
+
         return services;
     }
 }

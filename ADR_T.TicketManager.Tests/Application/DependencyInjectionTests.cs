@@ -4,8 +4,8 @@ using System;
 using ADR_T.TicketManager.Application;
 using AutoMapper;
 using MediatR;
-using FluentValidation; 
-using ADR_T.TicketManager.Application.Features.Auth.Commands.LoginUser; 
+using FluentValidation;
+using ADR_T.TicketManager.Application.Features.Auth.Commands.LoginUser;
 
 namespace ADR_T.TicketManager.Tests.Application;
 
@@ -27,7 +27,7 @@ public class DependencyInjectionTests
         Assert.NotNull(serviceProvider.GetService<IMediator>());
 
         var loginValidator = serviceProvider.GetService<IValidator<LoginUserCommand>>();
-        Assert.NotNull(loginValidator); 
-        
+        Assert.NotNull(loginValidator);
+
     }
 }

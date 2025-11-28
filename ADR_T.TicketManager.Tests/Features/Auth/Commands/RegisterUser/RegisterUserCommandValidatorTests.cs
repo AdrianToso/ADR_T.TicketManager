@@ -3,7 +3,7 @@ using FluentValidation.TestHelper;
 using System;
 using ADR_T.TicketManager.Application.Features.Auth.Commands.RegisterUser;
 using FluentValidation;
-using MediatR; 
+using MediatR;
 
 namespace ADR_T.TicketManager.Tests.Application.Features.Auth.Commands;
 
@@ -14,7 +14,7 @@ public class RegisterUserCommandValidatorTests
     // ARRANGE
     private readonly RegisterUserCommand _validCommand = new(
         Email: "usuario.valido@ejemplo.com",
-        Password: "PasswordSeguro123" 
+        Password: "PasswordSeguro123"
     );
 
     public RegisterUserCommandValidatorTests()

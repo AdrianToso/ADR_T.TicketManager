@@ -1,116 +1,125 @@
 services:
-  # Servicio de Base de Datos SQL Server
-  sqlserver:
-    build: ./sqlserver_image
-    container_name: adr_t_sqlserver
-    ports:
-      - "1433:1433"
+  servidor-sql:
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-20.04
+    container_name: servidor-sql-ticketmanager
     environment:
-      SA_PASSWORD: "${SQL_SA_PASSWORD}"
+      SA_PASSWORD: "${CONTRASENA_SQL}"
       ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "${PUERTO_SQL}:1433"
     volumes:
-      - sqlserver_data:/var/opt/mssql
+      - datos_sqlserver:/var/opt/mssql
+    networks:
+      - red-ticketmanager
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "${SQL_SA_PASSWORD}", "-Q", "SELECT 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      test: [
+          "CMD-SHELL",
+          "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"${CONTRASENA_SQL}\" -Q 'SELECT 1' || exit 1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # Servicio de RabbitMQ (Broker de mensajes)
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: adr_t_rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    image: rabbitmq:3.12.12-management
+    container_name: rabbitmq-ticketmanager
     environment:
-      RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER}"
-      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
-
-  # Servicio de Zookeeper
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: adr_t_zookeeper
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USUARIO}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_CONTRASENA}"
     ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      - "${PUERTO_RABBITMQ_AMQP}:5672"
+      - "${PUERTO_RABBITMQ_WEB}:15672"
+    volumes:
+      - datos_rabbitmq:/var/lib/rabbitmq
+    networks:
+      - red-ticketmanager
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
-  # Servicio de Kafka (Broker de mensajes para eventos de alto volumen)
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: adr_t_kafka
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    depends_on:
-      - zookeeper
-
-  # Kafka UI - Interfaz gráfica para Kafka
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: adr_t_kafka_ui
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: 'Mi Cluster Local'
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:29092'
-      KAFKA_CLUSTERS_0_ZOOKEEPER: 'zookeeper:2181'
-    depends_on:
-      - kafka
-
-  # Servicio de la API del Ticket Manager
-  webapi:
+  api-ticketmanager:
     build:
       context: .
       dockerfile: ADR_T.TicketManager.WebAPI/Dockerfile
-    container_name: adr_t_webapi
-    ports:
-      - "7000:80" # Mapea el puerto HTTP del contenedor al puerto 7000 del host.
-      # - "7001:443" # <<-- ESTA LÍNEA DEBE ESTAR COMENTADA O ELIMINADA.
+    container_name: api-ticketmanager
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=ADR_T_TicketManagerDb;User Id=SA;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
-      ASPNETCORE_URLS: "http://+:80" # <<-- MODIFICA ESTA LÍNEA PARA SOLO HTTP.
-      ASPNETCORE_ENVIRONMENT: Development
-      RabbitMQ__Host: "rabbitmq"
-      RabbitMQ__VirtualHost: "/"
-      RabbitMQ__Username: "${RABBITMQ_DEFAULT_USER}"
-      RabbitMQ__Password: "${RABBITMQ_DEFAULT_PASS}"
+      # Configuración Base de Datos
+      - ConnectionStrings__DefaultConnection=Server=servidor-sql;Database=ADR_T_Ticket_Development;User Id=sa;Password=${CONTRASENA_SQL};TrustServerCertificate=True;Encrypt=false
+      
+      # Configuración RabbitMQ
+      - RABBITMQ__HOST=rabbitmq
+      - RABBITMQ__USERNAME=${RABBITMQ_USUARIO}
+      - RABBITMQ__PASSWORD=${RABBITMQ_CONTRASENA}
+      - RABBITMQ__VIRTUALHOST=/
+      
+      # Configuración JWT
+      - JwtSettings__Secret=${JWT_SECRET}
+      - JwtSettings__Issuer=adr-ticketmanager-api
+      - JwtSettings__Audience=ticketmanager-client
+      - JwtSettings__ExpirationInMinutes=120
+      
+      # Configuración Seeding
+      - SEEDDATA__DEFAULTPASSWORD=${SEEDDATA_DEFAULTPASSWORD}
+      - SEEDDATA__ADMINPASSWORD=${SEEDDATA_ADMINPASSWORD}
+      
+      # Configuración CORS para Angular en Docker
+      - CorsSettings__AdditionalOrigins__0=http://host.docker.internal:4200
+      
+      # Entorno ASP.NET
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "${PUERTO_API}:80"
     depends_on:
-      sqlserver:
+      servidor-sql:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - red-ticketmanager
+    restart: unless-stopped
 
-  # Servicio del Microservicio de Notificaciones
-  notificationservice:
+  servicio-notificaciones:
     build:
       context: .
       dockerfile: ADR_T.NotificationService.API/Dockerfile
-    container_name: adr_t_notificationservice
-    ports:
-      - "7002:80"
+    container_name: servicio-notificaciones
     environment:
-      ConnectionStrings__NotificationConnection: "Server=sqlserver;Database=ADR_T_NotificationDb;User Id=SA;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
-      ASPNETCORE_URLS: "http://+:80"
-      ASPNETCORE_ENVIRONMENT: Development
-      RabbitMQ__Host: "rabbitmq"
-      RabbitMQ__VirtualHost: "/"
-      RabbitMQ__Username: "${RABBITMQ_DEFAULT_USER}"
-      RabbitMQ__Password: "${RABBITMQ_DEFAULT_PASS}"
+      # Configuración Base de Datos
+      - CONNECTION_STRING_NOTIFICATION=Server=servidor-sql;Database=ADR_T_NotificationDb_dev;User Id=sa;Password=${CONTRASENA_SQL};TrustServerCertificate=True;Encrypt=false
+      - ConnectionStrings__NotificationConnection=Server=servidor-sql;Database=ADR_T_NotificationDb_dev;User Id=sa;Password=${CONTRASENA_SQL};TrustServerCertificate=True;Encrypt=false
+      
+      # Configuración RabbitMQ
+      - RABBITMQ__HOST=rabbitmq
+      - RABBITMQ__USERNAME=${RABBITMQ_USUARIO}
+      - RABBITMQ__PASSWORD=${RABBITMQ_CONTRASENA}
+      - RABBITMQ__VIRTUALHOST=/
+      
+      # Entorno ASP.NET
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "${PUERTO_NOTIFICACIONES}:80"
     depends_on:
-      sqlserver:
+      servidor-sql:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - red-ticketmanager
+    restart: unless-stopped
 
 volumes:
-  sqlserver_data:
+  datos_sqlserver:
+    driver: local
+  datos_rabbitmq:
+    driver: local
+
+networks:
+  red-ticketmanager:
+    driver: bridge

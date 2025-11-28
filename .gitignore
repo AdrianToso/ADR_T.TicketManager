@@ -375,7 +375,7 @@ FodyWeavers.xsd
 /ADR_T.TicketManager.Web/
 *.go
 /.env
-/.env
+/.env.development
 *launchSettings.json
 .config/*
 !.config/dotnet-tools.json

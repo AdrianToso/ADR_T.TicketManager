@@ -1,5 +1,5 @@
 ﻿using Moq;
-using ADR_T.TicketManager.Application.Features.Users.Queries.GetUserById; 
+using ADR_T.TicketManager.Application.Features.Users.Queries.GetUserById;
 using ADR_T.TicketManager.Application.Contracts.Identity;
 using ADR_T.TicketManager.Application.DTOs;
 using AutoMapper;
@@ -55,7 +55,7 @@ public class GetUserByIdQueryHandlerTests
         var query = new GetUserByIdQuery(userId);
 
         _identityServiceMock.Setup(s => s.GetUserByIdAsync(userId))
-                            .ReturnsAsync((User?)null); 
+                            .ReturnsAsync((User?)null);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -63,11 +63,11 @@ public class GetUserByIdQueryHandlerTests
         // Assert
         Assert.Null(result);
         _identityServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
-        _mapperMock.Verify(m => m.Map<UserDto>(It.IsAny<User>()), Times.Never); 
+        _mapperMock.Verify(m => m.Map<UserDto>(It.IsAny<User>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNull_WhenMapperReturnsNull() 
+    public async Task Handle_ShouldReturnNull_WhenMapperReturnsNull()
     {
         // Arrange
         var userId = Guid.NewGuid();

@@ -15,7 +15,8 @@ public static class ServiceExtensions
     public static IServiceCollection AddCoreServices(this IServiceCollection services)
     {
         // Configurar serialización de Enums como strings
-        services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => {
+        services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+        {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
 
@@ -73,6 +74,15 @@ public static class ServiceExtensions
     {
         var allowedOrigin = configuration["CorsSettings:AngularClientOrigin"] ?? "http://localhost:4200";
 
+        // PARA SOPORTAR DOCKER
+        var additionalOrigins = configuration.GetSection("CorsSettings:AdditionalOrigins").Get<string[]>();
+        var allOrigins = new List<string> { allowedOrigin };
+
+        if (additionalOrigins != null)
+        {
+            allOrigins.AddRange(additionalOrigins);
+        }
+
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", policy =>
@@ -84,7 +94,7 @@ public static class ServiceExtensions
 
             options.AddPolicy("AllowAngular", builder =>
             {
-                builder.WithOrigins(allowedOrigin) 
+                builder.WithOrigins(allOrigins.ToArray())
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials();
@@ -99,7 +109,7 @@ public static class ServiceExtensions
         services.AddSwaggerGen(c =>
         {
             c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
-            c.SchemaFilter<EnumSchemaFilter>(); 
+            c.SchemaFilter<EnumSchemaFilter>();
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ticket Manager API", Version = "v1" });
 
             // Define el esquema de seguridad JWT
